@@ -5,7 +5,7 @@ export default function Privacy() {
     <main className="home">
       <SeoHead title="Política de Privacidad" description="Lee nuestra política de privacidad. Tus archivos se procesan localmente y nunca se suben a ningún servidor." path="/privacy" />
       <div className="info-section" style={{ marginTop: '2rem' }}>
-        <h1 style={{ fontSize: '1.6rem', marginBottom: '1rem' }}>Política de Privacidad</h1>
+        <h1 className="page-title">Política de Privacidad</h1>
         <p><em>Última actualización: julio de 2025</em></p>
 
         <h2>1. Procesamiento de archivos</h2>

@@ -1,23 +1,29 @@
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import SeoHead from '../components/SeoHead';
+import {
+  ClipIcon, ImageIcon, CodeIcon, DocumentArrowIcon, DocumentTextIcon,
+  LockIcon, BoltIcon, TagIcon, ShieldCheckIcon,
+} from '../components/icons';
 
-const tools = [
-  { id: 'images-to-pdf', label: 'Imágenes a PDF', icon: '🖼️', desc: 'Convierte JPG y PNG a PDF' },
-  { id: 'html-to-pdf',   label: 'HTML a PDF',     icon: '🌐', desc: 'Convierte HTML a PDF' },
-  { id: 'pdf-to-images', label: 'PDF a Imágenes', icon: '📄', desc: 'Extrae páginas como imágenes' },
-  { id: 'merge-pdfs',    label: 'Unir PDFs',      icon: '📎', desc: 'Combina varios PDFs en uno' },
-  { id: 'pdf-to-text',   label: 'PDF a Texto',    icon: '📝', desc: 'Extrae el texto de un PDF' },
+const featuredTool = {
+  id: 'merge-pdfs', label: 'Unir PDFs', Icon: ClipIcon,
+  desc: 'Combina varios archivos PDF en un único documento, en el orden que definas. La herramienta más usada para armar reportes y expedientes.',
+};
+
+const secondaryTools = [
+  { id: 'images-to-pdf', label: 'Imágenes a PDF', Icon: ImageIcon, desc: 'Convierte JPG y PNG a PDF' },
+  { id: 'html-to-pdf',   label: 'HTML a PDF',     Icon: CodeIcon,  desc: 'Genera un PDF desde código HTML' },
+  { id: 'pdf-to-images', label: 'PDF a Imágenes', Icon: DocumentArrowIcon, desc: 'Extrae páginas como imágenes' },
+  { id: 'pdf-to-text',   label: 'PDF a Texto',    Icon: DocumentTextIcon,  desc: 'Extrae el texto de un PDF' },
 ];
 
 const features = [
-  { icon: '🔒', title: 'Privado', desc: 'Todo se procesa en tu navegador. Tus archivos nunca se suben a ningún servidor.' },
-  { icon: '⚡', title: 'Rápido', desc: 'Sin colas de espera ni límites de tamaño. La conversión es instantánea.' },
-  { icon: '🆓', title: 'Gratis', desc: 'Sin registro, sin suscripciones. Todas las herramientas son 100% gratuitas.' },
+  { Icon: LockIcon, title: 'Privado', desc: 'Todo se procesa en tu navegador. Tus archivos nunca se suben a ningún servidor.' },
+  { Icon: BoltIcon, title: 'Rápido', desc: 'Sin colas de espera ni límites de tamaño. La conversión es instantánea.' },
+  { Icon: TagIcon, title: 'Gratis', desc: 'Sin registro, sin suscripciones. Todas las herramientas son 100% gratuitas.' },
 ];
 
 export default function Home() {
-  const navigate = useNavigate();
-
   return (
     <main className="home">
       <SeoHead
@@ -25,23 +31,37 @@ export default function Home() {
         description="Convierte imágenes a PDF, une PDFs, extrae texto y más. Gratis, sin registro y sin subir archivos a ningún servidor."
         path="/"
       />
-      <h1 className="home-title">Herramientas PDF gratuitas y online</h1>
-      <p className="home-subtitle">Convierte, une y extrae contenido de PDFs directamente en tu navegador. Sin registros, sin límites.</p>
+
+      <section className="hero">
+        <h1 className="hero-title">Herramientas PDF para tu negocio</h1>
+        <p className="hero-subtitle">Convertí, unificá y extraé contenido de tus documentos directamente en el navegador. Sin registros, sin límites de uso.</p>
+        <span className="hero-trust">
+          <ShieldCheckIcon width={16} height={16} />
+          <span>100% en tu navegador — ningún archivo se sube a un servidor</span>
+        </span>
+      </section>
 
       <div className="tools-grid">
-        {tools.map(tool => (
-          <div key={tool.id} className="tool-card" onClick={() => navigate(`/converter/${tool.id}`)}>
-            <div className="tool-card-icon">{tool.icon}</div>
+        <Link to={`/converter/${featuredTool.id}`} className="tool-card tool-card--featured">
+          <span className="tool-card-badge">Más usada</span>
+          <div className="tool-card-icon"><featuredTool.Icon /></div>
+          <div className="tool-card-label">{featuredTool.label}</div>
+          <div className="tool-card-desc">{featuredTool.desc}</div>
+        </Link>
+
+        {secondaryTools.map(tool => (
+          <Link key={tool.id} to={`/converter/${tool.id}`} className="tool-card">
+            <div className="tool-card-icon"><tool.Icon /></div>
             <div className="tool-card-label">{tool.label}</div>
             <div className="tool-card-desc">{tool.desc}</div>
-          </div>
+          </Link>
         ))}
       </div>
 
       <div className="features-section">
         {features.map(f => (
           <div key={f.title} className="feature-item">
-            <div className="feature-icon">{f.icon}</div>
+            <div className="feature-icon"><f.Icon /></div>
             <div>
               <h3 className="feature-title">{f.title}</h3>
               <p className="feature-desc">{f.desc}</p>
@@ -64,10 +84,10 @@ export default function Home() {
 
         <h2>¿Qué puedes hacer con PDF Converter?</h2>
         <ul>
+          <li><strong>Unir PDFs:</strong> Combina múltiples archivos PDF en un solo documento. Puedes reordenarlos antes de unirlos.</li>
           <li><strong>Convertir imágenes a PDF:</strong> Junta tus fotos JPG o PNG en un único documento PDF. Ideal para crear portafolios, informes o documentos escaneados.</li>
           <li><strong>Convertir HTML a PDF:</strong> Genera un PDF a partir de código HTML. Útil para crear facturas, reportes o cualquier documento con formato personalizado.</li>
           <li><strong>Convertir PDF a imágenes:</strong> Extrae cada página de un PDF como imagen PNG o JPEG en alta resolución.</li>
-          <li><strong>Unir PDFs:</strong> Combina múltiples archivos PDF en un solo documento. Puedes reordenarlos antes de unirlos.</li>
           <li><strong>Extraer texto de PDF:</strong> Obtén el contenido de texto de cualquier PDF para copiarlo o editarlo libremente.</li>
         </ul>
       </div>

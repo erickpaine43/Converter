@@ -1,6 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { convertImagesToPdf } from '../../converters/imagesToPdf';
 import type { PageSize, Orientation } from '../../converters/imagesToPdf';
+import { MAX_FILES_IMAGES, validateFiles } from '../../lib/fileLimits';
+import { toFriendlyErrorMessage } from '../../lib/errors';
+import { ImageIcon } from '../icons';
+import ProgressBar from './ProgressBar';
 
 interface ImageItem { file: File; preview: string; }
 
@@ -11,10 +15,32 @@ export default function ImagesToPdf() {
   const [loading, setLoading] = useState(false);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const itemsRef = useRef<ImageItem[]>(items);
+  const downloadUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
+
+  useEffect(() => {
+    return () => {
+      itemsRef.current.forEach(item => URL.revokeObjectURL(item.preview));
+      if (downloadUrlRef.current) URL.revokeObjectURL(downloadUrlRef.current);
+    };
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
-    const newItems = Array.from(e.target.files).map(file => ({
+    const newFiles = Array.from(e.target.files);
+    const validationError = validateFiles(newFiles, { maxCount: MAX_FILES_IMAGES, existingCount: items.length });
+    if (validationError) {
+      setError(validationError);
+      e.target.value = '';
+      return;
+    }
+    setError(null);
+    const newItems = newFiles.map(file => ({
       file, preview: URL.createObjectURL(file),
     }));
     setItems(prev => [...prev, ...newItems]);
@@ -29,19 +55,32 @@ export default function ImagesToPdf() {
     setItems(next);
   };
 
-  const removeItem = (index: number) => setItems(prev => prev.filter((_, i) => i !== index));
+  const removeItem = (index: number) => setItems(prev => {
+    const target = prev[index];
+    if (target) URL.revokeObjectURL(target.preview);
+    return prev.filter((_, i) => i !== index);
+  });
 
   const handleConvert = async () => {
     if (!items.length) return;
-    setLoading(true); setError(null); setDownloadUrl(null);
+    setLoading(true); setError(null); setProgress({ done: 0, total: items.length });
+    if (downloadUrlRef.current) URL.revokeObjectURL(downloadUrlRef.current);
+    setDownloadUrl(null);
     try {
-      const pdfBytes = await convertImagesToPdf(items.map(i => i.file), pageSize, orientation);
-      const blob = new Blob([pdfBytes.buffer as ArrayBuffer], { type: 'application/pdf' });
-      setDownloadUrl(URL.createObjectURL(blob));
+      const pdfBytes = await convertImagesToPdf(
+        items.map(i => i.file),
+        pageSize,
+        orientation,
+        (done, total) => setProgress({ done, total })
+      );
+      const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      downloadUrlRef.current = url;
+      setDownloadUrl(url);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al convertir');
+      setError(toFriendlyErrorMessage(err));
     } finally {
-      setLoading(false);
+      setLoading(false); setProgress(null);
     }
   };
 
@@ -51,8 +90,8 @@ export default function ImagesToPdf() {
 
       <label className="file-drop">
         <input type="file" accept="image/jpeg,image/png" multiple onChange={handleFileChange} />
-        <div className="file-drop-icon">🖼️</div>
-        <p><span>Selecciona imágenes</span> o arrastra aquí</p>
+        <div className="file-drop-icon"><ImageIcon /></div>
+        <p><span>Selecciona imágenes</span></p>
         <p>JPG, PNG</p>
       </label>
 
@@ -100,6 +139,7 @@ export default function ImagesToPdf() {
         <button className="btn btn-primary" onClick={handleConvert} disabled={!items.length || loading}>
           {loading ? 'Convirtiendo...' : 'Convertir a PDF'}
         </button>
+        {progress && <ProgressBar done={progress.done} total={progress.total} label="Convirtiendo" />}
         {downloadUrl && (
           <a className="btn btn-download" href={downloadUrl} download="converted.pdf">
             ⬇ Descargar PDF

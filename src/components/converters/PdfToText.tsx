@@ -1,5 +1,9 @@
 import { useState } from 'react';
 import { convertPdfToText, getPdfPageCount } from '../../converters/pdfToText';
+import { validateFiles } from '../../lib/fileLimits';
+import { toFriendlyErrorMessage } from '../../lib/errors';
+import { DocumentTextIcon } from '../icons';
+import ProgressBar from './ProgressBar';
 
 export default function PdfToText() {
   const [file, setFile] = useState<File | null>(null);
@@ -9,25 +13,41 @@ export default function PdfToText() {
   const [loading, setLoading] = useState(false);
   const [text, setText] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0] ?? null;
-    setFile(f); setText(null);
     if (f) {
-      const count = await getPdfPageCount(f);
-      setPageCount(count); setFromPage(1); setToPage(count);
+      const validationError = validateFiles([f]);
+      if (validationError) {
+        setError(validationError);
+        setFile(null); setText(null);
+        e.target.value = '';
+        return;
+      }
+    }
+    setError(null);
+    setFile(f); setText(null); setPageCount(0);
+    if (f) {
+      try {
+        const count = await getPdfPageCount(f);
+        setPageCount(count); setFromPage(1); setToPage(count);
+      } catch (err) {
+        setError(toFriendlyErrorMessage(err));
+        setFile(null);
+      }
     }
   };
 
   const handleConvert = async () => {
     if (!file) return;
-    setLoading(true); setError(null); setText(null);
+    setLoading(true); setError(null); setText(null); setProgress(null);
     try {
-      setText(await convertPdfToText(file, fromPage, toPage));
+      setText(await convertPdfToText(file, fromPage, toPage, (done, total) => setProgress({ done, total })));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al extraer texto');
+      setError(toFriendlyErrorMessage(err));
     } finally {
-      setLoading(false);
+      setLoading(false); setProgress(null);
     }
   };
 
@@ -46,8 +66,8 @@ export default function PdfToText() {
 
       <label className="file-drop">
         <input type="file" accept="application/pdf" onChange={handleFileChange} />
-        <div className="file-drop-icon">📝</div>
-        <p><span>Selecciona un PDF</span> o arrastra aquí</p>
+        <div className="file-drop-icon"><DocumentTextIcon /></div>
+        <p><span>Selecciona un PDF</span></p>
         {file && <p style={{ marginTop: '0.5rem', fontWeight: 600 }}>{file.name} — {pageCount} página(s)</p>}
       </label>
 
@@ -81,6 +101,7 @@ export default function PdfToText() {
         <button className="btn btn-primary" onClick={handleConvert} disabled={!file || loading}>
           {loading ? 'Extrayendo...' : 'Extraer Texto'}
         </button>
+        {progress && <ProgressBar done={progress.done} total={progress.total} label="Extrayendo" />}
         {text && (
           <button className="btn btn-download" onClick={handleDownload}>
             ⬇ Descargar .txt

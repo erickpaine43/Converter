@@ -11,23 +11,28 @@ export async function getPdfPageCount(file: File): Promise<number> {
   return pdf.numPages;
 }
 
+export type PageProgress = (done: number, total: number) => void;
+
 export async function convertPdfToText(
   file: File,
   fromPage: number = 1,
-  toPage?: number
+  toPage?: number,
+  onProgress?: PageProgress
 ): Promise<string> {
   const buffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
   const lastPage = toPage ?? pdf.numPages;
+  const totalPages = lastPage - fromPage + 1;
   let fullText = '';
 
   for (let i = fromPage; i <= lastPage; i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
     const pageText = content.items
-      .map((item: any) => ('str' in item ? item.str : ''))
+      .map(item => ('str' in item ? item.str : ''))
       .join(' ');
     fullText += `--- Página ${i} ---\n${pageText}\n\n`;
+    onProgress?.(i - fromPage + 1, totalPages);
   }
 
   return fullText;

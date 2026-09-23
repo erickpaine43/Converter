@@ -5,7 +5,7 @@ export default function About() {
     <main className="home">
       <SeoHead title="Sobre Nosotros" description="Conoce PDF Converter, la herramienta gratuita para trabajar con PDFs directamente en tu navegador." path="/about" />
       <div className="info-section" style={{ marginTop: '2rem' }}>
-        <h1 style={{ fontSize: '1.6rem', marginBottom: '1rem' }}>Sobre Nosotros</h1>
+        <h1 className="page-title">Sobre Nosotros</h1>
 
         <h2>¿Qué es PDF Converter?</h2>
         <p>

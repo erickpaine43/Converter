@@ -1,4 +1,5 @@
 import { PDFDocument, PageSizes } from 'pdf-lib';
+import { AppError } from '../lib/errors';
 
 export type PageSize = 'original' | 'A4' | 'Letter';
 export type Orientation = 'portrait' | 'landscape';
@@ -12,14 +13,18 @@ function getPageDimensions(size: PageSize, orientation: Orientation, imgWidth: n
   return orientation === 'landscape' ? [dims[1], dims[0]] : dims;
 }
 
+export type ImagesProgress = (done: number, total: number) => void;
+
 export async function convertImagesToPdf(
   files: File[],
   pageSize: PageSize = 'original',
-  orientation: Orientation = 'portrait'
+  orientation: Orientation = 'portrait',
+  onProgress?: ImagesProgress
 ): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
 
-  for (const file of files) {
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
     const buffer = await file.arrayBuffer();
     const mimeType = file.type;
 
@@ -29,7 +34,7 @@ export async function convertImagesToPdf(
     } else if (mimeType === 'image/png') {
       image = await pdfDoc.embedPng(buffer);
     } else {
-      throw new Error(`Formato no soportado: ${mimeType}. Usa JPG o PNG.`);
+      throw new AppError(`Formato no soportado: ${mimeType}. Usa JPG o PNG.`);
     }
 
     const [w, h] = getPageDimensions(pageSize, orientation, image.width, image.height);
@@ -43,6 +48,7 @@ export async function convertImagesToPdf(
     const y = (h - drawH) / 2;
 
     page.drawImage(image, { x, y, width: drawW, height: drawH });
+    onProgress?.(i + 1, files.length);
   }
 
   return pdfDoc.save();

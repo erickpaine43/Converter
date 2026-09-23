@@ -43,14 +43,14 @@ export default function Contact() {
     <main className="home">
       <SeoHead title="Contacto" description="Contáctanos para preguntas, sugerencias o reportar problemas con las herramientas PDF." path="/contact" />
       <div className="info-section" style={{ marginTop: '2rem', maxWidth: 560 }}>
-        <h1 style={{ fontSize: '1.6rem', marginBottom: '0.5rem' }}>Contacto</h1>
+        <h1 className="page-title" style={{ marginBottom: 'var(--space-2)' }}>Contacto</h1>
         <p style={{ marginBottom: '1.5rem' }}>
           ¿Tienes alguna pregunta, sugerencia o problema con alguna herramienta?
           Escríbenos y te responderemos a la brevedad.
         </p>
 
         {sent ? (
-          <p style={{ color: 'green', fontWeight: 600 }}>✓ Mensaje enviado. ¡Gracias por escribirnos!</p>
+          <p className="msg-success">Mensaje enviado. ¡Gracias por escribirnos!</p>
         ) : (
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div className="option-group">
@@ -58,7 +58,7 @@ export default function Contact() {
               <input
                 type="text" required placeholder="Tu nombre"
                 value={name} onChange={e => setName(e.target.value)}
-                style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid var(--border)' }}
+                style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid var(--color-hairline)' }}
               />
             </div>
             <div className="option-group">
@@ -66,7 +66,7 @@ export default function Contact() {
               <input
                 type="email" required placeholder="tu@email.com"
                 value={email} onChange={e => setEmail(e.target.value)}
-                style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid var(--border)' }}
+                style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid var(--color-hairline)' }}
               />
             </div>
             <div className="option-group">
@@ -74,7 +74,7 @@ export default function Contact() {
               <textarea
                 required rows={5} placeholder="Escribe tu mensaje..."
                 value={message} onChange={e => setMessage(e.target.value)}
-                style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid var(--border)', resize: 'vertical', fontFamily: 'inherit' }}
+                style={{ padding: '0.5rem', borderRadius: 8, border: '1px solid var(--color-hairline)', resize: 'vertical', fontFamily: 'inherit' }}
               />
             </div>
             {error && <p className="msg-error">{error}</p>}

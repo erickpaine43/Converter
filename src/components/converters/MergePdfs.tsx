@@ -1,5 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { mergePdfs } from '../../converters/MergePdfs';
+import { MAX_FILES_MERGE, validateFiles } from '../../lib/fileLimits';
+import { toFriendlyErrorMessage } from '../../lib/errors';
+import { ClipIcon } from '../icons';
+import ProgressBar from './ProgressBar';
 
 interface PdfItem { file: File; }
 
@@ -8,10 +12,26 @@ export default function MergePdfs() {
   const [loading, setLoading] = useState(false);
   const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const downloadUrlRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (downloadUrlRef.current) URL.revokeObjectURL(downloadUrlRef.current);
+    };
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
-    setItems(prev => [...prev, ...Array.from(e.target.files!).map(file => ({ file }))]);
+    const newFiles = Array.from(e.target.files);
+    const validationError = validateFiles(newFiles, { maxCount: MAX_FILES_MERGE, existingCount: items.length });
+    if (validationError) {
+      setError(validationError);
+      e.target.value = '';
+      return;
+    }
+    setError(null);
+    setItems(prev => [...prev, ...newFiles.map(file => ({ file }))]);
     setDownloadUrl(null);
   };
 
@@ -27,15 +47,22 @@ export default function MergePdfs() {
 
   const handleConvert = async () => {
     if (items.length < 2) return;
-    setLoading(true); setError(null); setDownloadUrl(null);
+    setLoading(true); setError(null); setProgress({ done: 0, total: items.length });
+    if (downloadUrlRef.current) URL.revokeObjectURL(downloadUrlRef.current);
+    setDownloadUrl(null);
     try {
-      const pdfBytes = await mergePdfs(items.map(i => i.file));
-      const blob = new Blob([pdfBytes.buffer as ArrayBuffer], { type: 'application/pdf' });
-      setDownloadUrl(URL.createObjectURL(blob));
+      const pdfBytes = await mergePdfs(
+        items.map(i => i.file),
+        (done, total) => setProgress({ done, total })
+      );
+      const blob = new Blob([new Uint8Array(pdfBytes)], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      downloadUrlRef.current = url;
+      setDownloadUrl(url);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al unir');
+      setError(toFriendlyErrorMessage(err));
     } finally {
-      setLoading(false);
+      setLoading(false); setProgress(null);
     }
   };
 
@@ -45,8 +72,8 @@ export default function MergePdfs() {
 
       <label className="file-drop">
         <input type="file" accept="application/pdf" multiple onChange={handleFileChange} />
-        <div className="file-drop-icon">📎</div>
-        <p><span>Selecciona PDFs</span> o arrastra aquí</p>
+        <div className="file-drop-icon"><ClipIcon /></div>
+        <p><span>Selecciona PDFs</span></p>
         <p>Puedes agregar más después</p>
       </label>
 
@@ -55,8 +82,8 @@ export default function MergePdfs() {
           <p className="section-label">Orden de archivos</p>
           {items.map((item, i) => (
             <div key={i} className="file-list-item">
-              <span style={{ color: '#999', minWidth: 20, fontSize: '0.85rem' }}>{i + 1}.</span>
-              <span className="file-name">📄 {item.file.name}</span>
+              <span className="file-list-index">{i + 1}.</span>
+              <span className="file-name">{item.file.name}</span>
               <span className="file-size">{(item.file.size / 1024).toFixed(0)} KB</span>
               <button className="icon-btn" onClick={() => moveItem(i, -1)} disabled={i === 0}>↑</button>
               <button className="icon-btn" onClick={() => moveItem(i, 1)} disabled={i === items.length - 1}>↓</button>
@@ -73,6 +100,7 @@ export default function MergePdfs() {
         <button className="btn btn-primary" onClick={handleConvert} disabled={items.length < 2 || loading}>
           {loading ? 'Uniendo...' : `Unir ${items.length > 0 ? items.length : ''} PDFs`}
         </button>
+        {progress && <ProgressBar done={progress.done} total={progress.total} label="Uniendo" />}
         {downloadUrl && (
           <a className="btn btn-download" href={downloadUrl} download="merged.pdf">
             ⬇ Descargar PDF unido

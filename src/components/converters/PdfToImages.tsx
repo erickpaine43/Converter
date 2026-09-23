@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { convertPdfToImages } from '../../converters/pdfToImages';
 import type { ImageFormat, ImageQuality } from '../../converters/pdfToImages';
+import { validateFiles } from '../../lib/fileLimits';
+import { toFriendlyErrorMessage } from '../../lib/errors';
+import { DocumentArrowIcon } from '../icons';
+import ProgressBar from './ProgressBar';
 
 export default function PdfToImages() {
   const [file, setFile] = useState<File | null>(null);
@@ -9,16 +13,17 @@ export default function PdfToImages() {
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
 
   const handleConvert = async () => {
     if (!file) return;
-    setLoading(true); setError(null); setImages([]);
+    setLoading(true); setError(null); setImages([]); setProgress(null);
     try {
-      setImages(await convertPdfToImages(file, format, quality));
+      setImages(await convertPdfToImages(file, format, quality, (done, total) => setProgress({ done, total })));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al convertir');
+      setError(toFriendlyErrorMessage(err));
     } finally {
-      setLoading(false);
+      setLoading(false); setProgress(null);
     }
   };
 
@@ -35,9 +40,22 @@ export default function PdfToImages() {
 
       <label className="file-drop">
         <input type="file" accept="application/pdf"
-          onChange={e => { setFile(e.target.files?.[0] ?? null); setImages([]); }} />
-        <div className="file-drop-icon">📄</div>
-        <p><span>Selecciona un PDF</span> o arrastra aquí</p>
+          onChange={e => {
+            const f = e.target.files?.[0] ?? null;
+            if (f) {
+              const validationError = validateFiles([f]);
+              if (validationError) {
+                setError(validationError);
+                setFile(null);
+                e.target.value = '';
+                return;
+              }
+            }
+            setError(null);
+            setFile(f); setImages([]);
+          }} />
+        <div className="file-drop-icon"><DocumentArrowIcon /></div>
+        <p><span>Selecciona un PDF</span></p>
         {file && <p style={{ marginTop: '0.5rem', fontWeight: 600 }}>{file.name}</p>}
       </label>
 
@@ -66,6 +84,7 @@ export default function PdfToImages() {
         <button className="btn btn-primary" onClick={handleConvert} disabled={!file || loading}>
           {loading ? 'Convirtiendo...' : 'Convertir'}
         </button>
+        {progress && <ProgressBar done={progress.done} total={progress.total} label="Convirtiendo" />}
         {images.length > 0 && (
           <button className="btn btn-download" onClick={downloadAll}>
             ⬇ Descargar todas ({images.length})
