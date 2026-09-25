@@ -3,7 +3,7 @@ import SeoHead from '../components/SeoHead';
 export default function Terms() {
   return (
     <main className="home">
-      <SeoHead title="Términos y Condiciones" description="Términos y condiciones de uso de PDF Converter." path="/terms" />
+      <SeoHead title="Términos y Condiciones" description="Términos y condiciones de uso de PDF Converter: en qué consiste el servicio gratuito, el uso aceptable de las herramientas y los límites de responsabilidad." path="/terms" />
       <div className="info-section" style={{ marginTop: '2rem' }}>
         <h1 className="page-title">Términos y Condiciones</h1>
         {/* Actualizar a mano cada vez que cambie algo relevante del comportamiento del sitio. */}

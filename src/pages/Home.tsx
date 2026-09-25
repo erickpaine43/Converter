@@ -1,21 +1,23 @@
 import { Link } from 'react-router-dom';
 import SeoHead from '../components/SeoHead';
-import { toolPath, type ToolId } from '../lib/tools';
+import JsonLd from '../components/JsonLd';
+import { LOGO_URL, SITE_NAME, canonicalUrl } from '../lib/site';
+import { TOOL_LABELS, TOOL_SHORT_DESCS, toolPath, type ToolId } from '../lib/tools';
 import {
   ClipIcon, ImageIcon, CodeIcon, DocumentArrowIcon, DocumentTextIcon,
   LockIcon, BoltIcon, TagIcon, ShieldCheckIcon,
 } from '../components/icons';
 
-const featuredTool: { id: ToolId; label: string; Icon: typeof ClipIcon; desc: string } = {
-  id: 'merge-pdfs', label: 'Unir PDFs', Icon: ClipIcon,
+const featuredTool: { id: ToolId; Icon: typeof ClipIcon; desc: string } = {
+  id: 'merge-pdfs', Icon: ClipIcon,
   desc: 'Combina varios archivos PDF en un único documento, en el orden que definas. La herramienta más usada para armar reportes y expedientes.',
 };
 
-const secondaryTools: { id: ToolId; label: string; Icon: typeof ClipIcon; desc: string }[] = [
-  { id: 'images-to-pdf', label: 'Imágenes a PDF', Icon: ImageIcon, desc: 'Convierte JPG y PNG a PDF' },
-  { id: 'html-to-pdf',   label: 'HTML a PDF',     Icon: CodeIcon,  desc: 'Genera un PDF desde código HTML' },
-  { id: 'pdf-to-images', label: 'PDF a Imágenes', Icon: DocumentArrowIcon, desc: 'Extrae páginas como imágenes' },
-  { id: 'pdf-to-text',   label: 'PDF a Texto',    Icon: DocumentTextIcon,  desc: 'Extrae el texto de un PDF' },
+const secondaryTools: { id: ToolId; Icon: typeof ClipIcon }[] = [
+  { id: 'images-to-pdf', Icon: ImageIcon },
+  { id: 'html-to-pdf',   Icon: CodeIcon },
+  { id: 'pdf-to-images', Icon: DocumentArrowIcon },
+  { id: 'pdf-to-text',   Icon: DocumentTextIcon },
 ];
 
 const features = [
@@ -28,10 +30,29 @@ export default function Home() {
   return (
     <main className="home">
       <SeoHead
-        title="Herramientas PDF gratuitas online"
-        description="Convierte imágenes a PDF, une PDFs, extrae texto y más. Gratis, sin registro y sin subir archivos a ningún servidor."
+        title="Herramientas PDF Gratis Online sin Registro"
+        description="Une PDFs, convierte imágenes a PDF, pasa un PDF a imágenes o a texto y convierte HTML a PDF. Gratis, sin registro y sin subir tus archivos a ningún servidor."
         path="/"
       />
+      <JsonLd data={{
+        '@graph': [
+          {
+            '@type': 'Organization',
+            '@id': `${canonicalUrl('/')}#organization`,
+            name: SITE_NAME,
+            url: canonicalUrl('/'),
+            logo: LOGO_URL,
+          },
+          {
+            '@type': 'WebSite',
+            '@id': `${canonicalUrl('/')}#website`,
+            name: SITE_NAME,
+            url: canonicalUrl('/'),
+            inLanguage: 'es',
+            publisher: { '@id': `${canonicalUrl('/')}#organization` },
+          },
+        ],
+      }} />
 
       <section className="hero">
         <h1 className="hero-title">Herramientas PDF para tu negocio</h1>
@@ -46,15 +67,15 @@ export default function Home() {
         <Link to={toolPath(featuredTool.id)} className="tool-card tool-card--featured">
           <span className="tool-card-badge">Más usada</span>
           <div className="tool-card-icon"><featuredTool.Icon /></div>
-          <div className="tool-card-label">{featuredTool.label}</div>
+          <div className="tool-card-label">{TOOL_LABELS[featuredTool.id]}</div>
           <div className="tool-card-desc">{featuredTool.desc}</div>
         </Link>
 
         {secondaryTools.map(tool => (
           <Link key={tool.id} to={toolPath(tool.id)} className="tool-card">
             <div className="tool-card-icon"><tool.Icon /></div>
-            <div className="tool-card-label">{tool.label}</div>
-            <div className="tool-card-desc">{tool.desc}</div>
+            <div className="tool-card-label">{TOOL_LABELS[tool.id]}</div>
+            <div className="tool-card-desc">{TOOL_SHORT_DESCS[tool.id]}</div>
           </Link>
         ))}
       </div>
@@ -64,7 +85,8 @@ export default function Home() {
           <div key={f.title} className="feature-item">
             <div className="feature-icon"><f.Icon /></div>
             <div>
-              <h3 className="feature-title">{f.title}</h3>
+              {/* No es un heading: son etiquetas cortas, y un h3 acá saltaba del h1 al h3 */}
+              <p className="feature-title">{f.title}</p>
               <p className="feature-desc">{f.desc}</p>
             </div>
           </div>

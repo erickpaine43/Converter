@@ -253,10 +253,11 @@ a { color: inherit; }
   font-weight: 500;
   padding: 0;
   margin-bottom: var(--space-6);
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: var(--space-1);
   font-family: var(--font-sans);
+  text-decoration: none;
 }
 
 .back-btn:hover { color: var(--color-ink); }
@@ -673,7 +674,7 @@ a { color: inherit; }
 
 .feature-icon { color: var(--color-ink); flex-shrink: 0; }
 .feature-icon svg { width: 22px; height: 22px; stroke-width: 1.6; }
-.feature-title { font-size: var(--font-size-base); font-weight: 600; margin-bottom: var(--space-1); font-family: var(--font-sans); }
+.feature-title { font-size: var(--font-size-base); font-weight: 600; margin-bottom: var(--space-1); font-family: var(--font-sans); color: var(--color-ink); line-height: 1.25; }
 .feature-desc { color: var(--color-slate); font-size: var(--font-size-sm); line-height: 1.55; }
 
 /* ============ Info section ============ */
@@ -710,6 +711,41 @@ a { color: inherit; }
 .info-section li strong { color: var(--color-ink); }
 
 .converter-extra-content { margin-top: var(--space-8); }
+.converter-extra-content section:first-child h2 { margin-top: 0; }
+.info-section ol.content-steps {
+  padding-left: var(--space-5);
+  color: var(--color-slate);
+  line-height: 1.7;
+  margin-bottom: var(--space-3);
+}
+.info-section ol.content-steps li { margin-bottom: var(--space-2); }
+.info-section p + ul { margin-bottom: var(--space-3); }
+
+/* ============ Otras herramientas (pie de cada herramienta) ============ */
+.other-tools { margin-top: var(--space-10); }
+.other-tools-title { font-size: var(--font-size-lg); margin-bottom: var(--space-4); }
+.other-tools-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-3);
+}
+.other-tool-link {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  height: 100%;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius);
+  text-decoration: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.other-tool-link:hover,
+.other-tool-link:focus-visible { border-color: var(--color-ink); box-shadow: var(--shadow-hover); }
+.other-tool-label { font-family: var(--font-serif); font-weight: 600; color: var(--color-ink); }
+.other-tool-desc { font-size: var(--font-size-sm); color: var(--color-slate); }
 
 /* ============ Converter page description ============ */
 .converter-desc {
@@ -782,6 +818,8 @@ a { color: inherit; }
 }
 
 .footer-links a:hover { color: var(--color-ink); }
+.footer-tools { margin-bottom: var(--space-4); }
+.footer-tools a { color: var(--color-ink); font-weight: 500; }
 
 /* Acción (no navegación) con el mismo aspecto que los links del footer */
 .footer-link-button {

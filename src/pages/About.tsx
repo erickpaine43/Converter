@@ -3,7 +3,7 @@ import SeoHead from '../components/SeoHead';
 export default function About() {
   return (
     <main className="home">
-      <SeoHead title="Sobre Nosotros" description="Conoce PDF Converter, la herramienta gratuita para trabajar con PDFs directamente en tu navegador." path="/about" />
+      <SeoHead title="Sobre Nosotros" description="Conoce PDF Converter: herramientas gratuitas para unir, convertir y extraer contenido de PDFs que funcionan en tu navegador, sin registro ni servidores." path="/about" />
       <div className="info-section" style={{ marginTop: '2rem' }}>
         <h1 className="page-title">Sobre Nosotros</h1>
 

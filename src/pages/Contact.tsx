@@ -46,7 +46,7 @@ export default function Contact() {
 
   return (
     <main className="home">
-      <SeoHead title="Contacto" description="Contáctanos para preguntas, sugerencias o reportar problemas con las herramientas PDF." path="/contact" />
+      <SeoHead title="Contacto" description="Escríbenos para hacer preguntas, dejar sugerencias o reportar un problema con alguna de las herramientas de PDF Converter. Te responderemos a la brevedad." path="/contact" />
       <div className="info-section" style={{ marginTop: '2rem', maxWidth: 560 }}>
         <h1 className="page-title" style={{ marginBottom: 'var(--space-2)' }}>Contacto</h1>
         <p style={{ marginBottom: '1.5rem' }}>

@@ -3,7 +3,7 @@ import SeoHead from '../components/SeoHead';
 export default function Privacy() {
   return (
     <main className="home">
-      <SeoHead title="Política de Privacidad" description="Lee nuestra política de privacidad. Tus archivos se procesan localmente y nunca se suben a ningún servidor." path="/privacy" />
+      <SeoHead title="Política de Privacidad" description="Política de privacidad de PDF Converter: tus archivos se procesan en tu navegador y nunca se suben a un servidor. Qué datos de uso y cookies utilizamos." path="/privacy" />
       <div className="info-section" style={{ marginTop: '2rem' }}>
         <h1 className="page-title">Política de Privacidad</h1>
         {/* Actualizar a mano cada vez que cambie algo relevante del comportamiento del sitio. */}

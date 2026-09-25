@@ -3,8 +3,10 @@ import { renderToString } from 'react-dom/server';
 import { StaticRouter } from 'react-router-dom';
 import { AppRoutes } from './App';
 
-// scripts/prerender.mjs toma la lista de rutas de acá (única fuente: lib/tools.ts).
-export { PRERENDER_ROUTES } from './lib/tools';
+// scripts/prerender.mjs toma de acá las rutas (única fuente: lib/tools.ts) y la
+// URL base para generar dist/sitemap.xml.
+export { PRERENDER_ROUTES, TOOL_SLUGS } from './lib/tools';
+export { canonicalUrl } from './lib/site';
 
 // React 19 hoistea <title>/<meta>/<link> renderizados en cualquier punto del
 // árbol al inicio del string de salida — por eso alcanza con renderToString

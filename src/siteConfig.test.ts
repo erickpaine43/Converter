@@ -1,12 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { LEGACY_TOOL_PATHS, PRERENDER_ROUTES } from './lib/tools';
+import { LEGACY_TOOL_PATHS } from './lib/tools';
 
-// sitemap.xml y netlify.toml son archivos estáticos: este test los mantiene
-// sincronizados con src/lib/tools.ts (la lista de rutas real de la app).
+// netlify.toml es un archivo estático: este test lo mantiene sincronizado con
+// src/lib/tools.ts (la lista de rutas real de la app).
 const root = path.resolve(__dirname, '..');
-const BASE_URL = 'https://pdf-converter-freee.netlify.app';
 
 interface Redirect { from: string; to: string; status: number; force: boolean }
 
@@ -21,12 +20,8 @@ function readRedirects(): Redirect[] {
 }
 
 describe('sitemap.xml', () => {
-  it('lista exactamente las rutas pre-renderizadas, con barra final', () => {
-    const xml = readFileSync(path.join(root, 'public/sitemap.xml'), 'utf-8');
-    const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
-    const expected = PRERENDER_ROUTES.map(r => `${BASE_URL}${r === '/' ? '/' : `${r}/`}`);
-    expect([...locs].sort()).toEqual([...expected].sort());
-    expect(locs.some(l => l.includes('/converter/'))).toBe(false);
+  it('no hay una copia estática en public/: se genera en el build desde las rutas reales (scripts/prerender.mjs)', () => {
+    expect(existsSync(path.join(root, 'public/sitemap.xml'))).toBe(false);
   });
 });
 
