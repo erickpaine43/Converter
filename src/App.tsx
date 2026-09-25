@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import CookieBanner from './components/CookieBanner';
+import { useAnalytics } from './lib/useAnalytics';
 import Home from './pages/Home';
 import ConverterPage from './pages/ConverterPage';
 import Privacy from './pages/Privacy';
@@ -9,6 +11,8 @@ import About from './pages/About';
 import Contact from './pages/Contact';
 
 export function AppRoutes() {
+  useAnalytics();
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <Header />
@@ -23,6 +27,7 @@ export function AppRoutes() {
         </Routes>
       </div>
       <Footer />
+      <CookieBanner />
     </div>
   );
 }

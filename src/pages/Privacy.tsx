@@ -43,7 +43,8 @@ export default function Privacy() {
           Usamos cookies estrictamente necesarias para el funcionamiento del sitio, cookies de
           análisis (Google Analytics) y, si en el futuro se activa la publicidad, cookies de
           terceros relacionadas con ella (AdSense). No usamos cookies para rastrear
-          tu actividad fuera de este sitio.
+          tu actividad fuera de este sitio. Las cookies de análisis solo se activan si las aceptas
+          en el aviso de cookies; si las rechazas, Google Analytics no se carga.
         </p>
 
         <h2>5. Seguridad</h2>

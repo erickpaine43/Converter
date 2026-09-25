@@ -775,6 +775,18 @@ a { color: inherit; }
 }
 
 .footer-links a:hover { color: var(--color-ink); }
+
+/* Acción (no navegación) con el mismo aspecto que los links del footer */
+.footer-link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--font-size-sm);
+  color: var(--color-slate);
+}
+.footer-link-button:hover { color: var(--color-ink); }
 .footer-copy { color: var(--color-slate); font-size: var(--font-size-xs); }
 
 /* ============ Responsive ============ */
@@ -805,3 +817,28 @@ a { color: inherit; }
   .converter-card { padding: var(--space-5); }
   .info-section { padding: var(--space-5); }
 }
+
+/* ============ Cookie banner ============ */
+.cookie-banner {
+  position: fixed;
+  left: var(--space-4);
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: 100;
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-hover);
+  font-size: var(--font-size-sm);
+  color: var(--color-slate);
+}
+.cookie-banner p { flex: 1 1 320px; }
+.cookie-banner a { color: var(--color-ink); }
+.cookie-banner-actions { display: flex; gap: var(--space-2); margin-left: auto; }
