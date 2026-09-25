@@ -1,16 +1,17 @@
 import { Link } from 'react-router-dom';
 import SeoHead from '../components/SeoHead';
+import { toolPath, type ToolId } from '../lib/tools';
 import {
   ClipIcon, ImageIcon, CodeIcon, DocumentArrowIcon, DocumentTextIcon,
   LockIcon, BoltIcon, TagIcon, ShieldCheckIcon,
 } from '../components/icons';
 
-const featuredTool = {
+const featuredTool: { id: ToolId; label: string; Icon: typeof ClipIcon; desc: string } = {
   id: 'merge-pdfs', label: 'Unir PDFs', Icon: ClipIcon,
   desc: 'Combina varios archivos PDF en un único documento, en el orden que definas. La herramienta más usada para armar reportes y expedientes.',
 };
 
-const secondaryTools = [
+const secondaryTools: { id: ToolId; label: string; Icon: typeof ClipIcon; desc: string }[] = [
   { id: 'images-to-pdf', label: 'Imágenes a PDF', Icon: ImageIcon, desc: 'Convierte JPG y PNG a PDF' },
   { id: 'html-to-pdf',   label: 'HTML a PDF',     Icon: CodeIcon,  desc: 'Genera un PDF desde código HTML' },
   { id: 'pdf-to-images', label: 'PDF a Imágenes', Icon: DocumentArrowIcon, desc: 'Extrae páginas como imágenes' },
@@ -42,7 +43,7 @@ export default function Home() {
       </section>
 
       <div className="tools-grid">
-        <Link to={`/converter/${featuredTool.id}`} className="tool-card tool-card--featured">
+        <Link to={toolPath(featuredTool.id)} className="tool-card tool-card--featured">
           <span className="tool-card-badge">Más usada</span>
           <div className="tool-card-icon"><featuredTool.Icon /></div>
           <div className="tool-card-label">{featuredTool.label}</div>
@@ -50,7 +51,7 @@ export default function Home() {
         </Link>
 
         {secondaryTools.map(tool => (
-          <Link key={tool.id} to={`/converter/${tool.id}`} className="tool-card">
+          <Link key={tool.id} to={toolPath(tool.id)} className="tool-card">
             <div className="tool-card-icon"><tool.Icon /></div>
             <div className="tool-card-label">{tool.label}</div>
             <div className="tool-card-desc">{tool.desc}</div>

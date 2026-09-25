@@ -1,12 +1,13 @@
 import { lazy, Suspense, type ComponentType } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Faq from '../components/Faq';
 import SeoHead from '../components/SeoHead';
 import { MAX_FILE_SIZE_MB, MAX_FILES_IMAGES, MAX_FILES_MERGE } from '../lib/fileLimits';
+import { toolPath, type ToolId } from '../lib/tools';
 
 // Lazy: estas librerías (pdfjs-dist, html2canvas, jspdf, pdf-lib) son pesadas y
 // solo hacen falta al interactuar con la herramienta, no en la carga inicial.
-const converterMap: Record<string, ComponentType> = {
+const converterMap: Record<ToolId, ComponentType> = {
   'images-to-pdf': lazy(() => import('../components/converters/imagesToPdf')),
   'html-to-pdf':   lazy(() => import('../components/converters/HtmlToPdf')),
   'pdf-to-images': lazy(() => import('../components/converters/PdfToImages')),
@@ -92,19 +93,11 @@ const h1Titles: Record<string, string> = {
   'pdf-to-text':   'Extraer Texto de PDF Gratis Online',
 };
 
-export default function ConverterPage() {
-  const { type } = useParams<{ type: string }>();
+// Cada herramienta tiene su propia ruta explícita en AppRoutes (slug en
+// español, ver lib/tools.ts); cualquier otra URL cae en el catch-all <NotFound />.
+export default function ConverterPage({ tool: type }: { tool: ToolId }) {
   const navigate = useNavigate();
-  const Component = type ? converterMap[type] : null;
-
-  if (!Component) {
-    return (
-      <main className="converter-page">
-        <p>Conversión no encontrada.</p>
-        <button className="btn btn-secondary" onClick={() => navigate('/')}>Volver</button>
-      </main>
-    );
-  }
+  const Component = converterMap[type];
 
   return (
     <main className="converter-page">
@@ -112,7 +105,7 @@ export default function ConverterPage() {
         <SeoHead
           title={titles[type] ?? 'Convertidor PDF'}
           description={descriptions[type] ?? 'Herramienta gratuita para trabajar con archivos PDF.'}
-          path={`/converter/${type}`}
+          path={toolPath(type)}
         />
       )}
       <button className="back-btn" onClick={() => navigate('/')}>← Volver</button>

@@ -4,23 +4,13 @@ import { hydrateRoot, type Root } from 'react-dom/client';
 import { StaticRouter } from 'react-router-dom';
 import { BrowserRouter } from 'react-router-dom';
 import { AppRoutes } from './App';
+import { PRERENDER_ROUTES } from './lib/tools';
 
 // Regresión para el pre-rendering: hidrata contra el HTML que realmente
 // produce entry-server.tsx (mismo AppRoutes, mismo StaticRouter) y falla si
 // React reporta cualquier mismatch de hidratación (texto distinto, atributos
 // distintos, o un boundary de Suspense que no calza entre server y cliente).
-const ROUTES = [
-  '/',
-  '/converter/images-to-pdf',
-  '/converter/html-to-pdf',
-  '/converter/pdf-to-images',
-  '/converter/merge-pdfs',
-  '/converter/pdf-to-text',
-  '/about',
-  '/contact',
-  '/privacy',
-  '/terms',
-];
+const ROUTES = PRERENDER_ROUTES;
 
 let root: Root | null = null;
 let container: HTMLDivElement | null = null;
@@ -33,12 +23,23 @@ afterEach(() => {
   window.history.pushState({}, '', '/');
 });
 
+// Netlify sirve dist/404.html (pre-renderizado desde NOT_FOUND_ROUTE) para
+// cualquier URL sin archivo propio: el cliente hidrata ese HTML en la URL real.
+const NOT_FOUND_ROUTE = '/__not-found__';
+const CASES: { route: string; serverRoute: string }[] = [
+  ...ROUTES.map(route => ({ route, serverRoute: route })),
+  { route: '/pagina-que-no-existe', serverRoute: NOT_FOUND_ROUTE },
+  { route: '/converter/noexiste', serverRoute: NOT_FOUND_ROUTE },
+  // URL vieja en inglés: en producción Netlify la redirige con 301 antes de llegar acá
+  { route: '/converter/merge-pdfs', serverRoute: NOT_FOUND_ROUTE },
+];
+
 describe('Hidratación SSR -> cliente por ruta', () => {
-  for (const route of ROUTES) {
+  for (const { route, serverRoute } of CASES) {
     it(`hidrata ${route} sin warnings de mismatch`, async () => {
       // 1. Render "servidor": la misma función que usa scripts/prerender.mjs.
       const serverHtml = renderToString(
-        <StaticRouter location={route}>
+        <StaticRouter location={serverRoute}>
           <AppRoutes />
         </StaticRouter>
       );

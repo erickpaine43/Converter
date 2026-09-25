@@ -3,8 +3,11 @@ import { convertPdfToImages } from '../../converters/pdfToImages';
 import type { ImageFormat, ImageQuality } from '../../converters/pdfToImages';
 import { validateFiles } from '../../lib/fileLimits';
 import { toFriendlyErrorMessage } from '../../lib/errors';
+import { useFileDrop } from '../../lib/useFileDrop';
 import { DocumentArrowIcon } from '../icons';
 import ProgressBar from './ProgressBar';
+
+const ACCEPT = 'application/pdf';
 
 export default function PdfToImages() {
   const [file, setFile] = useState<File | null>(null);
@@ -14,6 +17,23 @@ export default function PdfToImages() {
   const [images, setImages] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+
+  // Flujo común del input y del drag & drop. Devuelve false si se rechazó.
+  const selectFile = (f: File | null): boolean => {
+    if (f) {
+      const validationError = validateFiles([f]);
+      if (validationError) {
+        setError(validationError);
+        setFile(null);
+        return false;
+      }
+    }
+    setError(null);
+    setFile(f); setImages([]);
+    return true;
+  };
+
+  const { isDragging, dropProps } = useFileDrop({ onFiles: files => selectFile(files[0]), onReject: setError, accept: ACCEPT });
 
   const handleConvert = async () => {
     if (!file) return;
@@ -38,24 +58,13 @@ export default function PdfToImages() {
     <div>
       <h2>PDF a Imágenes</h2>
 
-      <label className="file-drop">
-        <input type="file" accept="application/pdf"
+      <label className={`file-drop${isDragging ? ' file-drop--active' : ''}`} {...dropProps}>
+        <input type="file" accept={ACCEPT}
           onChange={e => {
-            const f = e.target.files?.[0] ?? null;
-            if (f) {
-              const validationError = validateFiles([f]);
-              if (validationError) {
-                setError(validationError);
-                setFile(null);
-                e.target.value = '';
-                return;
-              }
-            }
-            setError(null);
-            setFile(f); setImages([]);
+            if (!selectFile(e.target.files?.[0] ?? null)) e.target.value = '';
           }} />
         <div className="file-drop-icon"><DocumentArrowIcon /></div>
-        <p><span>Selecciona un PDF</span></p>
+        <p><span>{isDragging ? 'Suelta el PDF aquí' : 'Selecciona un PDF o arrástralo aquí'}</span></p>
         {file && <p style={{ marginTop: '0.5rem', fontWeight: 600 }}>{file.name}</p>}
       </label>
 

@@ -3,11 +3,12 @@ import { render, screen, waitForElementToBeRemoved } from '@testing-library/reac
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { AppRoutes } from '../App';
+import { toolPath } from '../lib/tools';
 import { mockPdfPageRender } from '../test/pdfjsMock';
 import { makePdfFile, makeSolidPngFile } from '../test/fixtures';
 
 // A diferencia de los tests de components/converters/*.integration.test.tsx (que
-// montan el componente directo), esto navega por la ruta real /converter/:type,
+// montan el componente directo), esto navega por la ruta real de cada herramienta (slug en español),
 // tal como llega un usuario real o un pre-render: valida que React.lazy() +
 // Suspense entreguen el widget real y que el flujo de archivo -> conversión ->
 // descarga siga funcionando después de mover los conversores a carga diferida.
@@ -57,9 +58,9 @@ beforeEach(() => {
   html2canvasMock.mockClear();
 });
 
-describe('Navegación real /converter/:type (React.lazy + Suspense)', () => {
+describe('Navegación real por la URL de cada herramienta (React.lazy + Suspense)', () => {
   it('images-to-pdf: fallback -> widget real -> flujo completo de conversión', async () => {
-    const { consoleError } = await renderRoute('/converter/images-to-pdf');
+    const { consoleError } = await renderRoute(toolPath('images-to-pdf'));
 
     expect(screen.getByRole('heading', { level: 1, name: /convertir imágenes a pdf gratis online/i })).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 2, name: /^imágenes a pdf$/i })).toBeInTheDocument();
@@ -77,7 +78,7 @@ describe('Navegación real /converter/:type (React.lazy + Suspense)', () => {
   });
 
   it('html-to-pdf: fallback -> widget real -> flujo completo de conversión', async () => {
-    const { consoleError } = await renderRoute('/converter/html-to-pdf');
+    const { consoleError } = await renderRoute(toolPath('html-to-pdf'));
 
     expect(screen.getByRole('heading', { level: 1, name: /convertir html a pdf gratis online/i })).toBeInTheDocument();
 
@@ -94,7 +95,7 @@ describe('Navegación real /converter/:type (React.lazy + Suspense)', () => {
   });
 
   it('pdf-to-images: fallback -> widget real -> flujo completo de conversión', async () => {
-    const { consoleError } = await renderRoute('/converter/pdf-to-images');
+    const { consoleError } = await renderRoute(toolPath('pdf-to-images'));
 
     expect(screen.getByRole('heading', { level: 1, name: /convertir pdf a imágenes gratis online/i })).toBeInTheDocument();
 
@@ -109,7 +110,7 @@ describe('Navegación real /converter/:type (React.lazy + Suspense)', () => {
   });
 
   it('merge-pdfs: fallback -> widget real -> flujo completo de conversión', async () => {
-    const { consoleError } = await renderRoute('/converter/merge-pdfs');
+    const { consoleError } = await renderRoute(toolPath('merge-pdfs'));
 
     expect(screen.getByRole('heading', { level: 1, name: /unir pdfs gratis online/i })).toBeInTheDocument();
 
@@ -126,7 +127,7 @@ describe('Navegación real /converter/:type (React.lazy + Suspense)', () => {
   });
 
   it('pdf-to-text: fallback -> widget real -> flujo completo de conversión', async () => {
-    const { consoleError } = await renderRoute('/converter/pdf-to-text');
+    const { consoleError } = await renderRoute(toolPath('pdf-to-text'));
 
     expect(screen.getByRole('heading', { level: 1, name: /extraer texto de pdf gratis online/i })).toBeInTheDocument();
 

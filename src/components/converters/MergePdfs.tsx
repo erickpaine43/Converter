@@ -2,10 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { mergePdfs } from '../../converters/MergePdfs';
 import { MAX_FILES_MERGE, validateFiles } from '../../lib/fileLimits';
 import { toFriendlyErrorMessage } from '../../lib/errors';
+import { useFileDrop } from '../../lib/useFileDrop';
 import { ClipIcon } from '../icons';
 import ProgressBar from './ProgressBar';
 
 interface PdfItem { file: File; }
+
+const ACCEPT = 'application/pdf';
 
 export default function MergePdfs() {
   const [items, setItems] = useState<PdfItem[]>([]);
@@ -21,19 +24,25 @@ export default function MergePdfs() {
     };
   }, []);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
-    const newFiles = Array.from(e.target.files);
+  // Flujo común del input y del drag & drop. Devuelve false si se rechazó.
+  const addFiles = (newFiles: File[]): boolean => {
     const validationError = validateFiles(newFiles, { maxCount: MAX_FILES_MERGE, existingCount: items.length });
     if (validationError) {
       setError(validationError);
-      e.target.value = '';
-      return;
+      return false;
     }
     setError(null);
     setItems(prev => [...prev, ...newFiles.map(file => ({ file }))]);
     setDownloadUrl(null);
+    return true;
   };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    if (!addFiles(Array.from(e.target.files))) e.target.value = '';
+  };
+
+  const { isDragging, dropProps } = useFileDrop({ onFiles: addFiles, onReject: setError, accept: ACCEPT, multiple: true });
 
   const moveItem = (index: number, dir: -1 | 1) => {
     const next = [...items];
@@ -70,10 +79,10 @@ export default function MergePdfs() {
     <div>
       <h2>Unir PDFs</h2>
 
-      <label className="file-drop">
-        <input type="file" accept="application/pdf" multiple onChange={handleFileChange} />
+      <label className={`file-drop${isDragging ? ' file-drop--active' : ''}`} {...dropProps}>
+        <input type="file" accept={ACCEPT} multiple onChange={handleFileChange} />
         <div className="file-drop-icon"><ClipIcon /></div>
-        <p><span>Selecciona PDFs</span></p>
+        <p><span>{isDragging ? 'Suelta los PDFs aquí' : 'Selecciona PDFs o arrástralos aquí'}</span></p>
         <p>Puedes agregar más después</p>
       </label>
 

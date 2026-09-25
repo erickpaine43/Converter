@@ -3,10 +3,13 @@ import { convertImagesToPdf } from '../../converters/imagesToPdf';
 import type { PageSize, Orientation } from '../../converters/imagesToPdf';
 import { MAX_FILES_IMAGES, validateFiles } from '../../lib/fileLimits';
 import { toFriendlyErrorMessage } from '../../lib/errors';
+import { useFileDrop } from '../../lib/useFileDrop';
 import { ImageIcon } from '../icons';
 import ProgressBar from './ProgressBar';
 
 interface ImageItem { file: File; preview: string; }
+
+const ACCEPT = 'image/jpeg,image/png';
 
 export default function ImagesToPdf() {
   const [items, setItems] = useState<ImageItem[]>([]);
@@ -30,14 +33,12 @@ export default function ImagesToPdf() {
     };
   }, []);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
-    const newFiles = Array.from(e.target.files);
+  // Flujo común del input y del drag & drop. Devuelve false si se rechazó.
+  const addFiles = (newFiles: File[]): boolean => {
     const validationError = validateFiles(newFiles, { maxCount: MAX_FILES_IMAGES, existingCount: items.length });
     if (validationError) {
       setError(validationError);
-      e.target.value = '';
-      return;
+      return false;
     }
     setError(null);
     const newItems = newFiles.map(file => ({
@@ -45,7 +46,15 @@ export default function ImagesToPdf() {
     }));
     setItems(prev => [...prev, ...newItems]);
     setDownloadUrl(null);
+    return true;
   };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    if (!addFiles(Array.from(e.target.files))) e.target.value = '';
+  };
+
+  const { isDragging, dropProps } = useFileDrop({ onFiles: addFiles, onReject: setError, accept: ACCEPT, multiple: true });
 
   const moveItem = (index: number, dir: -1 | 1) => {
     const next = [...items];
@@ -88,10 +97,10 @@ export default function ImagesToPdf() {
     <div>
       <h2>Imágenes a PDF</h2>
 
-      <label className="file-drop">
-        <input type="file" accept="image/jpeg,image/png" multiple onChange={handleFileChange} />
+      <label className={`file-drop${isDragging ? ' file-drop--active' : ''}`} {...dropProps}>
+        <input type="file" accept={ACCEPT} multiple onChange={handleFileChange} />
         <div className="file-drop-icon"><ImageIcon /></div>
-        <p><span>Selecciona imágenes</span></p>
+        <p><span>{isDragging ? 'Suelta las imágenes aquí' : 'Selecciona imágenes o arrástralas aquí'}</span></p>
         <p>JPG, PNG</p>
       </label>
 

@@ -5,10 +5,10 @@ export default function Footer() {
   return (
     <footer className="footer">
       <div className="footer-links">
-        <Link to="/about">Sobre Nosotros</Link>
-        <Link to="/contact">Contacto</Link>
-        <Link to="/privacy">Política de Privacidad</Link>
-        <Link to="/terms">Términos y Condiciones</Link>
+        <Link to="/about/">Sobre Nosotros</Link>
+        <Link to="/contact/">Contacto</Link>
+        <Link to="/privacy/">Política de Privacidad</Link>
+        <Link to="/terms/">Términos y Condiciones</Link>
         <button type="button" className="footer-link-button" onClick={clearCookieConsent}>
           Preferencias de cookies
         </button>

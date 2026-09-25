@@ -12,21 +12,17 @@ const distDir = path.join(root, 'dist');
 const ssrDir = path.join(root, 'dist-ssr');
 const ssrEntry = path.join(ssrDir, 'entry-server.js');
 
-const ROUTES = [
-  '/',
-  '/converter/images-to-pdf',
-  '/converter/html-to-pdf',
-  '/converter/pdf-to-images',
-  '/converter/merge-pdfs',
-  '/converter/pdf-to-text',
-  '/about',
-  '/contact',
-  '/privacy',
-  '/terms',
-];
+// Cualquier ruta que no matchee en AppRoutes cae en el catch-all <NotFound />;
+// se renderiza con esta URL inventada y se escribe como dist/404.html.
+const NOT_FOUND_ROUTE = '/__not-found__';
 
+// Cada ruta sale como <ruta>/index.html, que Netlify sirve con 200 en la URL
+// CON barra final (/about/); /about responde 301 hacia ahí. Por eso canonical,
+// og:url y sitemap.xml usan siempre la forma con barra (ver SeoHead.tsx).
+// La 404 es la excepción: va a dist/404.html, que Netlify sirve con status 404.
 function outputPathFor(route) {
   if (route === '/') return path.join(distDir, 'index.html');
+  if (route === NOT_FOUND_ROUTE) return path.join(distDir, '404.html');
   return path.join(distDir, route.replace(/^\//, ''), 'index.html');
 }
 
@@ -62,9 +58,10 @@ async function main() {
     throw new Error(`No se encontró el bundle SSR en ${ssrEntry}. Corré "vite build --ssr src/entry-server.tsx --outDir dist-ssr" antes.`);
   }
   const template = await readFile(path.join(distDir, 'index.html'), 'utf-8');
-  const { render } = await import(pathToFileURL(ssrEntry).href);
+  // La lista de rutas vive en src/lib/tools.ts y llega re-exportada por el bundle SSR.
+  const { render, PRERENDER_ROUTES } = await import(pathToFileURL(ssrEntry).href);
 
-  for (const route of ROUTES) {
+  for (const route of [...PRERENDER_ROUTES, NOT_FOUND_ROUTE]) {
     const rendered = render(route);
     const page = injectIntoTemplate(template, rendered);
     const outPath = outputPathFor(route);

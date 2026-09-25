@@ -10,7 +10,7 @@ export default function CookieBanner() {
     <div className="cookie-banner" role="region" aria-label="Aviso de cookies">
       <p>
         Usamos cookies de análisis (Google Analytics) para entender de forma agregada cómo se usa
-        el sitio. Solo se activan si las aceptas. <Link to="/privacy">Más información</Link>.
+        el sitio. Solo se activan si las aceptas. <Link to="/privacy/">Más información</Link>.
       </p>
       <div className="cookie-banner-actions">
         <button type="button" className="btn btn-secondary" onClick={() => setCookieConsent('rejected')}>

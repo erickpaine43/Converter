@@ -6,6 +6,7 @@ import { resolveHtmlImages } from '../../lib/htmlImageResolver';
 import { MAX_HTML_LENGTH, validateFiles } from '../../lib/fileLimits';
 import { AppError, toFriendlyErrorMessage } from '../../lib/errors';
 import { decodeHtmlBytes } from '../../lib/htmlEncoding';
+import { useFileDrop } from '../../lib/useFileDrop';
 import { CodeIcon } from '../icons';
 import ProgressBar from './ProgressBar';
 
@@ -90,29 +91,26 @@ export default function HtmlToPdf() {
     setError(null);
   };
 
-  const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    if (!files.length) return;
+  // Flujo común del input y del drag & drop. Devuelve false si se rechazó.
+  const addFiles = (files: File[]): boolean => {
+    if (!files.length) return true;
 
     const htmlCandidates = files.filter(f => HTML_EXTENSION_RE.test(f.name));
     const imageCandidates = files.filter(f => IMAGE_EXTENSION_RE.test(f.name));
 
     if (htmlCandidates.length === 0) {
       setError('Tenés que incluir un archivo .html o .htm en la selección.');
-      e.target.value = '';
-      return;
+      return false;
     }
     if (htmlCandidates.length > 1) {
       setError('Solo se puede subir un archivo .html o .htm por conversión.');
-      e.target.value = '';
-      return;
+      return false;
     }
 
     const validationError = validateFiles(files);
     if (validationError) {
       setError(validationError);
-      e.target.value = '';
-      return;
+      return false;
     }
 
     setError(null);
@@ -134,7 +132,14 @@ export default function HtmlToPdf() {
         setError(toFriendlyErrorMessage(new AppError('No se pudo leer el archivo. Probá de nuevo.')));
       }
     );
+    return true;
   };
+
+  const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!addFiles(Array.from(e.target.files ?? []))) e.target.value = '';
+  };
+
+  const { isDragging, dropProps } = useFileDrop({ onFiles: addFiles, onReject: setError, multiple: true });
 
   const handleRemoveFiles = () => {
     setHtml('');
@@ -186,7 +191,7 @@ export default function HtmlToPdf() {
 
       {mode === 'upload' ? (
         <>
-          <label className="file-drop">
+          <label className={`file-drop${isDragging ? ' file-drop--active' : ''}`} {...dropProps}>
             <input
               type="file"
               multiple
@@ -194,7 +199,7 @@ export default function HtmlToPdf() {
               onChange={handleFilesChange}
             />
             <div className="file-drop-icon"><CodeIcon /></div>
-            <p><span>Selecciona un archivo HTML</span></p>
+            <p><span>{isDragging ? 'Suelta los archivos aquí' : 'Selecciona un archivo HTML o arrástralo aquí'}</span></p>
             <p>.html, .htm — podés incluir además sus imágenes (.jpg, .png, .gif, .webp)</p>
           </label>
           {htmlFileName && (

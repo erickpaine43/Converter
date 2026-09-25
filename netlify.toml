@@ -6,7 +6,74 @@
   for = "/*"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
+
+# URLs viejas de las herramientas (en inglés, bajo /converter/) -> slug en
+# español. 301 para conservar links externos e indexación previa. Van ANTES del
+# catch-all 404 (Netlify aplica la primera regla que matchea) y con force por si
+# quedara un HTML viejo en esa ruta. Se declaran con y sin barra final para no
+# depender de cómo normalice el path el motor de redirects.
+# Si se agrega una herramienta, sumarla acá y en src/lib/tools.ts (lo controla
+# src/siteConfig.test.ts).
+[[redirects]]
+  from = "/converter/merge-pdfs"
+  to = "/unir-pdf/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/converter/merge-pdfs/"
+  to = "/unir-pdf/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/converter/images-to-pdf"
+  to = "/imagenes-a-pdf/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/converter/images-to-pdf/"
+  to = "/imagenes-a-pdf/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/converter/pdf-to-images"
+  to = "/pdf-a-imagenes/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/converter/pdf-to-images/"
+  to = "/pdf-a-imagenes/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/converter/pdf-to-text"
+  to = "/pdf-a-texto/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/converter/pdf-to-text/"
+  to = "/pdf-a-texto/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/converter/html-to-pdf"
+  to = "/html-a-pdf/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/converter/html-to-pdf/"
+  to = "/html-a-pdf/"
+  status = 301
+  force = true
+
+# Todas las rutas válidas están pre-renderizadas como <ruta>/index.html
+# (scripts/prerender.mjs), así que no hace falta el fallback SPA "/* -> /index.html
+# 200": devolvía 200 con el HTML de la Home para CUALQUIER URL (soft 404).
+#
+# Sin `force`, Netlify sirve primero el archivo estático si existe (shadowing), y
+# solo si no hay archivo aplica esta regla: status 404 real con dist/404.html.
+# No se agregan reglas 200 explícitas por ruta a propósito: servirían /about con
+# 200 además de /about/, duplicando cada URL canónica (hoy /about -> 301 /about/).
 [[redirects]]
   from = "/*"
-  to = "/index.html"
-  status = 200
+  to = "/404.html"
+  status = 404
