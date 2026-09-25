@@ -5,6 +5,12 @@ export type CookieConsent = 'accepted' | 'rejected' | null;
 
 export const COOKIE_CONSENT_KEY = 'cookie-consent';
 
+// Clase que el script inline de index.html pone en <html> antes del primer paint
+// si ya hay respuesta guardada: oculta el banner pre-renderizado (sin flash) hasta
+// que React toma el control. Ese script repite a mano esta clave y esta clase
+// (lo controla cookieBanner.test.tsx).
+export const COOKIE_ANSWERED_CLASS = 'cookie-consent-answered';
+
 const listeners = new Set<() => void>();
 
 export function getCookieConsent(): CookieConsent {

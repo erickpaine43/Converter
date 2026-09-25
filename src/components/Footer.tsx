@@ -19,7 +19,10 @@ export default function Footer() {
           Preferencias de cookies
         </button>
       </div>
-      <p className="footer-copy">© {new Date().getFullYear()} PDF Converter. Todos los derechos reservados.</p>
+      {/* El año sale del pre-render (fecha del build): si el cliente hidrata en un
+          año posterior el texto difiere, y suppressHydrationWarning evita el mismatch
+          conservando el del HTML hasta el próximo deploy. */}
+      <p className="footer-copy" suppressHydrationWarning>© {new Date().getFullYear()} PDF Converter. Todos los derechos reservados.</p>
     </footer>
   );
 }

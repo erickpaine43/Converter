@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react';
-import { mergePdfs } from '../../converters/MergePdfs';
 import { MAX_FILES_MERGE, validateFiles } from '../../lib/fileLimits';
 import { toFriendlyErrorMessage } from '../../lib/errors';
 import { useFileDrop } from '../../lib/useFileDrop';
@@ -60,6 +59,9 @@ export default function MergePdfs() {
     if (downloadUrlRef.current) URL.revokeObjectURL(downloadUrlRef.current);
     setDownloadUrl(null);
     try {
+      // pdf-lib (~510 KB) se baja recién al unir: si se importara arriba, el
+      // widget no aparecería hasta terminar de descargarlo.
+      const { mergePdfs } = await import('../../converters/MergePdfs');
       const pdfBytes = await mergePdfs(
         items.map(i => i.file),
         (done, total) => setProgress({ done, total })

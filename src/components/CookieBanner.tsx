@@ -1,10 +1,23 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { setCookieConsent } from '../lib/cookieConsent';
+import { COOKIE_ANSWERED_CLASS, setCookieConsent } from '../lib/cookieConsent';
 import { useCookieConsent } from '../lib/useCookieConsent';
 
+// Se pre-renderiza visible ('pending' en server e hidratación): así se pinta junto
+// con el resto de la página en vez de aparecer recién tras hidratar (lo que lo
+// volvía el elemento LCP en algunas páginas). A quien ya respondió se lo oculta el
+// script inline de index.html antes del primer paint, y React lo desmonta al leer
+// localStorage.
 export default function CookieBanner() {
   const consent = useCookieConsent();
-  if (consent !== null) return null;
+
+  // Sin respuesta guardada (p. ej. tras "Preferencias de cookies" en el footer):
+  // saca la clase del script inline para que el banner vuelva a verse.
+  useEffect(() => {
+    if (consent === null) document.documentElement.classList.remove(COOKIE_ANSWERED_CLASS);
+  }, [consent]);
+
+  if (consent === 'accepted' || consent === 'rejected') return null;
 
   return (
     <div className="cookie-banner" role="region" aria-label="Aviso de cookies">

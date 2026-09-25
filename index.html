@@ -5,9 +5,12 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PDF Converter — Herramientas PDF gratuitas online</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+    <!-- Fuentes self-hosted en src/fonts.css (font-display: swap). Sin <link rel="preload">
+         a propósito: medido con Slow 4G, precargar los ~168 KB de woff2 compite con el
+         CSS/JS y retrasa el FCP/LCP ~300 ms sin mejorar el CLS. -->
+    <!-- El banner de cookies viene pre-renderizado: si ya hay respuesta guardada se
+         oculta antes del primer paint (clave y clase: src/lib/cookieConsent.ts). -->
+    <script>try{var c=localStorage.getItem('cookie-consent');if(c==='accepted'||c==='rejected')document.documentElement.classList.add('cookie-consent-answered')}catch(e){}</script>
   </head>
   <body>
     <div id="root"></div>
