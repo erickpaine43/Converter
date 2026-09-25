@@ -18,7 +18,7 @@ export default function About() {
         <p>
           Creemos que las herramientas de productividad deben ser accesibles para todos.
           Por eso construimos PDF Converter como una solución 100% gratuita que funciona
-          directamente en el navegador, sin límites de uso ni suscripciones ocultas.
+          directamente en el navegador, sin registro ni suscripciones ocultas — gratis para uso normal.
         </p>
 
         <h2>¿Por qué en el navegador?</h2>

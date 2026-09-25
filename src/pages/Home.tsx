@@ -19,7 +19,7 @@ const secondaryTools = [
 
 const features = [
   { Icon: LockIcon, title: 'Privado', desc: 'Todo se procesa en tu navegador. Tus archivos nunca se suben a ningún servidor.' },
-  { Icon: BoltIcon, title: 'Rápido', desc: 'Sin colas de espera ni límites de tamaño. La conversión es instantánea.' },
+  { Icon: BoltIcon, title: 'Rápido', desc: 'Sin colas de espera ni subidas a servidores: la conversión ocurre directamente en tu dispositivo.' },
   { Icon: TagIcon, title: 'Gratis', desc: 'Sin registro, sin suscripciones. Todas las herramientas son 100% gratuitas.' },
 ];
 
@@ -34,7 +34,7 @@ export default function Home() {
 
       <section className="hero">
         <h1 className="hero-title">Herramientas PDF para tu negocio</h1>
-        <p className="hero-subtitle">Convertí, unificá y extraé contenido de tus documentos directamente en el navegador. Sin registros, sin límites de uso.</p>
+        <p className="hero-subtitle">Convertí, unificá y extraé contenido de tus documentos directamente en el navegador. Sin registro, sin suscripciones — gratis para uso normal.</p>
         <span className="hero-trust">
           <ShieldCheckIcon width={16} height={16} />
           <span>100% en tu navegador — ningún archivo se sube a un servidor</span>

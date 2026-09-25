@@ -6,7 +6,8 @@ export default function Privacy() {
       <SeoHead title="Política de Privacidad" description="Lee nuestra política de privacidad. Tus archivos se procesan localmente y nunca se suben a ningún servidor." path="/privacy" />
       <div className="info-section" style={{ marginTop: '2rem' }}>
         <h1 className="page-title">Política de Privacidad</h1>
-        <p><em>Última actualización: julio de 2025</em></p>
+        {/* Actualizar a mano cada vez que cambie algo relevante del comportamiento del sitio. */}
+        <p><em>Última actualización: septiembre de 2026</em></p>
 
         <h2>1. Procesamiento de archivos</h2>
         <p>
@@ -21,19 +22,27 @@ export default function Privacy() {
           anónimas (como Google Analytics) para entender cómo se usa el sitio de manera agregada,
           sin identificar a usuarios individuales.
         </p>
+        <p>
+          Si nos escribes a través del formulario de contacto, recibimos el nombre, email y
+          mensaje que ingreses (el envío se gestiona con Netlify Forms, el servicio donde está
+          alojado el sitio). Solo usamos esos datos para responderte.
+        </p>
 
         <h2>3. Google AdSense</h2>
         <p>
-          Este sitio utiliza Google AdSense para mostrar publicidad. Google puede usar cookies
-          para mostrar anuncios relevantes basados en tus visitas anteriores. Puedes gestionar
+          {/* AdSense aún no está activo: volver a redactar en afirmativo cuando se active. */}
+          Este sitio puede utilizar Google AdSense para mostrar publicidad en el futuro. Si se
+          activa, Google podrá usar cookies para mostrar anuncios relevantes basados en tus
+          visitas anteriores. Puedes gestionar
           tus preferencias de anuncios en{' '}
           <a href="https://adssettings.google.com" target="_blank" rel="noreferrer">adssettings.google.com</a>.
         </p>
 
         <h2>4. Cookies</h2>
         <p>
-          Usamos cookies estrictamente necesarias para el funcionamiento del sitio y cookies
-          de terceros relacionadas con la publicidad (AdSense). No usamos cookies para rastrear
+          Usamos cookies estrictamente necesarias para el funcionamiento del sitio, cookies de
+          análisis (Google Analytics) y, si en el futuro se activa la publicidad, cookies de
+          terceros relacionadas con ella (AdSense). No usamos cookies para rastrear
           tu actividad fuera de este sitio.
         </p>
 

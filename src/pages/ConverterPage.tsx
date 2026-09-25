@@ -2,6 +2,7 @@ import { lazy, Suspense, type ComponentType } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Faq from '../components/Faq';
 import SeoHead from '../components/SeoHead';
+import { MAX_FILE_SIZE_MB, MAX_FILES_IMAGES, MAX_FILES_MERGE } from '../lib/fileLimits';
 
 // Lazy: estas librerías (pdfjs-dist, html2canvas, jspdf, pdf-lib) son pesadas y
 // solo hacen falta al interactuar con la herramienta, no en la carga inicial.
@@ -24,7 +25,7 @@ const descriptions: Record<string, string> = {
 const faqs: Record<string, { q: string; a: string }[]> = {
   'images-to-pdf': [
     { q: '¿Qué formatos de imagen puedo convertir?', a: 'Actualmente soportamos JPG/JPEG y PNG. Otros formatos como WEBP o GIF no están soportados por las limitaciones de la librería de procesamiento.' },
-    { q: '¿Hay límite de imágenes que puedo subir?', a: 'No hay un límite fijo, pero ten en cuenta que imágenes muy grandes pueden ralentizar el proceso ya que todo se ejecuta en tu navegador.' },
+    { q: '¿Hay límite de imágenes que puedo subir?', a: `Puedes subir hasta ${MAX_FILES_IMAGES} imágenes por conversión, de hasta ${MAX_FILE_SIZE_MB} MB cada una. Ten en cuenta que imágenes muy grandes pueden ralentizar el proceso ya que todo se ejecuta en tu navegador.` },
     { q: '¿Mis imágenes se suben a algún servidor?', a: 'No. Todo el procesamiento ocurre localmente en tu dispositivo. Tus imágenes nunca abandonan tu navegador.' },
     { q: '¿Puedo cambiar el orden de las imágenes?', a: 'Sí, una vez que subes las imágenes aparecen miniaturas con botones para reordenarlas antes de convertir.' },
   ],
@@ -48,7 +49,7 @@ const faqs: Record<string, { q: string; a: string }[]> = {
     { q: '¿Funciona con PDFs protegidos con contraseña?', a: 'No, actualmente solo se pueden procesar PDFs sin contraseña.' },
   ],
   'merge-pdfs': [
-    { q: '¿Cuántos PDFs puedo unir?', a: 'No hay un límite estricto, pero archivos muy pesados pueden consumir bastante memoria del navegador.' },
+    { q: '¿Cuántos PDFs puedo unir?', a: `Hasta ${MAX_FILES_MERGE} PDFs por vez, de hasta ${MAX_FILE_SIZE_MB} MB cada uno. Archivos muy pesados pueden consumir bastante memoria del navegador.` },
     { q: '¿Puedo cambiar el orden de los PDFs antes de unirlos?', a: 'Sí, puedes reordenarlos con los botones de subir y bajar antes de hacer clic en Unir.' },
     { q: '¿Se conservan las páginas originales de cada PDF?', a: 'Sí, todas las páginas de todos los PDFs se incluyen en el documento final en el orden que hayas definido.' },
     { q: '¿Mis PDFs se suben a algún servidor?', a: 'No. Todo el proceso ocurre en tu dispositivo. Nadie más tiene acceso a tus archivos.' },

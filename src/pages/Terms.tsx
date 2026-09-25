@@ -6,7 +6,8 @@ export default function Terms() {
       <SeoHead title="Términos y Condiciones" description="Términos y condiciones de uso de PDF Converter." path="/terms" />
       <div className="info-section" style={{ marginTop: '2rem' }}>
         <h1 className="page-title">Términos y Condiciones</h1>
-        <p><em>Última actualización: julio de 2025</em></p>
+        {/* Actualizar a mano cada vez que cambie algo relevante del comportamiento del sitio. */}
+        <p><em>Última actualización: septiembre de 2026</em></p>
 
         <h2>1. Aceptación de los términos</h2>
         <p>
