@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
+import { StrictMode } from 'react';
 import { renderToString } from 'react-dom/server';
+import { waitFor } from '@testing-library/react';
 import { hydrateRoot, type Root } from 'react-dom/client';
 import { StaticRouter } from 'react-router-dom';
 import { BrowserRouter } from 'react-router-dom';
@@ -53,19 +55,22 @@ describe('Hidratación SSR -> cliente por ruta', () => {
       const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
       const recoverableErrors: unknown[] = [];
 
-      // 3. Hidrata con el árbol real del cliente (BrowserRouter, como main.tsx).
+      // 3. Hidrata con el árbol real del cliente (StrictMode + BrowserRouter, como main.tsx).
       root = hydrateRoot(
         container,
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>,
+        <StrictMode>
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </StrictMode>,
         {
-          onRecoverableError: (error) => { recoverableErrors.push(error); },
+          onRecoverableError: (error) => { recoverableErrors.push(String(error)); },
         }
       );
 
-      // deja correr microtasks (lazy() dispara el import dinámico tras hidratar)
-      await new Promise(resolve => setTimeout(resolve, 0));
+      // En las herramientas, espera a que el widget lazy() cargue y reemplace el
+      // placeholder "Cargando herramienta…" que vino en el HTML pre-renderizado.
+      await waitFor(() => expect(container!.querySelector('.converter-loading')).toBeNull(), { timeout: 5000 });
 
       const hydrationWarnings = consoleError.mock.calls.filter(args =>
         args.some(a => typeof a === 'string' && /hydrat/i.test(a))
@@ -77,4 +82,43 @@ describe('Hidratación SSR -> cliente por ruta', () => {
       consoleError.mockRestore();
     });
   }
+});
+
+describe('Hidratación con año distinto al del build', () => {
+  it('no reporta mismatch si el footer se pre-renderizó en un año anterior', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      vi.setSystemTime(new Date('2026-12-31T23:00:00'));
+      const serverHtml = renderToString(
+        <StaticRouter location="/">
+          <AppRoutes />
+        </StaticRouter>
+      );
+
+      container = document.createElement('div');
+      container.innerHTML = serverHtml;
+      document.body.appendChild(container);
+
+      vi.setSystemTime(new Date('2027-01-01T01:00:00'));
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const recoverableErrors: string[] = [];
+      root = hydrateRoot(
+        container,
+        <StrictMode>
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </StrictMode>,
+        { onRecoverableError: (error) => { recoverableErrors.push(String(error)); } }
+      );
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(recoverableErrors, JSON.stringify(recoverableErrors)).toHaveLength(0);
+      expect(consoleError.mock.calls.filter(args => args.some(a => typeof a === 'string' && /hydrat/i.test(a)))).toHaveLength(0);
+      expect(container.querySelector('.footer-copy')?.textContent).toContain('2026');
+      consoleError.mockRestore();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

@@ -1,3 +1,5 @@
+@import './fonts.css';
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
@@ -279,6 +281,17 @@ a { color: inherit; }
   font-size: var(--font-size-sm);
   padding: var(--space-6) 0;
 }
+/* Altura inicial de cada widget (sin archivos cargados), medida en el navegador:
+   el contenedor la reserva desde el HTML pre-renderizado para que el widget no
+   empuje el contenido de abajo al reemplazar al placeholder (CLS). Es el máximo
+   de cada rango de ancho (el texto de las opciones se parte en más líneas cuanto
+   más angosto): si el widget queda más bajo sobra algo de espacio, pero nada se
+   mueve. Si cambia el marcado inicial de un widget, re-medir. */
+.converter-widget--merge-pdfs    { min-height: 267.8px; }
+.converter-widget--images-to-pdf { min-height: 267.8px; }
+.converter-widget--pdf-to-images { min-height: 352.8px; }
+.converter-widget--pdf-to-text   { min-height: 246.8px; }
+.converter-widget--html-to-pdf   { min-height: 453.2px; }
 
 /* ============ Mode toggle (subir archivo / pegar código) ============ */
 .mode-toggle {
@@ -861,6 +874,12 @@ a { color: inherit; }
   .converter-page { padding: var(--space-5) var(--space-4); }
   .converter-card { padding: var(--space-5); }
   .info-section { padding: var(--space-5); }
+  /* Máximos medidos entre 320 y 600px de ancho. */
+  .converter-widget--merge-pdfs    { min-height: 309.8px; }
+  .converter-widget--images-to-pdf { min-height: 288.8px; }
+  .converter-widget--pdf-to-images { min-height: 373.8px; }
+  .converter-widget--pdf-to-text   { min-height: 267.8px; }
+  .converter-widget--html-to-pdf   { min-height: 495.2px; }
 }
 
 /* ============ Cookie banner ============ */
@@ -886,4 +905,6 @@ a { color: inherit; }
 }
 .cookie-banner p { flex: 1 1 320px; }
 .cookie-banner a { color: var(--color-ink); }
+/* Puesta por el script inline de index.html si ya hay respuesta guardada. */
+.cookie-consent-answered .cookie-banner { display: none; }
 .cookie-banner-actions { display: flex; gap: var(--space-2); margin-left: auto; }

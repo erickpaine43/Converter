@@ -7,6 +7,7 @@ import JsonLd from '../components/JsonLd';
 import { MAX_FILE_SIZE_MB, MAX_FILES_IMAGES, MAX_FILES_MERGE } from '../lib/fileLimits';
 import { TOOL_LABELS, toolOgImage, toolPath, type ToolId } from '../lib/tools';
 import { BASE_URL, SITE_NAME, canonicalUrl } from '../lib/site';
+import { useHydrated } from '../lib/useHydrated';
 
 // Lazy: estas librerías (pdfjs-dist, html2canvas, jspdf, pdf-lib) son pesadas y
 // solo hacen falta al interactuar con la herramienta, no en la carga inicial.
@@ -281,6 +282,8 @@ function toolStructuredData(type: ToolId): Record<string, unknown> {
 
 export default function ConverterPage({ tool: type }: { tool: ToolId }) {
   const Component = converterMap[type];
+  const hydrated = useHydrated();
+  const loading = <div className="converter-loading">Cargando herramienta…</div>;
 
   return (
     <main className="converter-page">
@@ -297,17 +300,22 @@ export default function ConverterPage({ tool: type }: { tool: ToolId }) {
         {type && descriptions[type] && (
           <p className="converter-desc">{descriptions[type]}</p>
         )}
-        {import.meta.env.SSR ? (
-          // En el server nunca se dispara el import() dinámico del widget: son
-          // librerías de navegador (pdfjs-dist, html2canvas, jspdf) que no deben
-          // evaluarse en Node. El marcado es idéntico al fallback de Suspense de
-          // abajo para que la hidratación en cliente no tenga mismatch.
-          <div className="converter-loading">Cargando herramienta…</div>
-        ) : (
-          <Suspense fallback={<div className="converter-loading">Cargando herramienta…</div>}>
-            <Component />
-          </Suspense>
-        )}
+        {/* Reserva la altura inicial del widget (index.css) desde el HTML
+            pre-renderizado: al reemplazar al placeholder no empuja el contenido
+            de abajo (CLS). */}
+        <div className={`converter-widget converter-widget--${type}`}>
+          {hydrated ? (
+            <Suspense fallback={loading}>
+              <Component />
+            </Suspense>
+          ) : (
+            // Server y primer render del cliente (hidratación): solo el placeholder,
+            // sin Suspense ni lazy(). Así el HTML pre-renderizado calza exacto, y el
+            // import() del widget (pdfjs-dist, html2canvas, jspdf: librerías de
+            // navegador que no deben evaluarse en Node) arranca recién tras hidratar.
+            loading
+          )}
+        </div>
       </div>
       <div className="info-section converter-extra-content">
         {extraContent[type].map(section => (
