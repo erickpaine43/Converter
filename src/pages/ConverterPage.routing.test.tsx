@@ -7,11 +7,11 @@ import { toolPath } from '../lib/tools';
 import { mockPdfPageRender } from '../test/pdfjsMock';
 import { makePdfFile, makeSolidPngFile } from '../test/fixtures';
 
-// A diferencia de los tests de components/converters/*.integration.test.tsx (que
-// montan el componente directo), esto navega por la ruta real de cada herramienta (slug en español),
-// tal como llega un usuario real o un pre-render: valida que React.lazy() +
-// Suspense entreguen el widget real y que el flujo de archivo -> conversión ->
-// descarga siga funcionando después de mover los conversores a carga diferida.
+// Unlike components/converters/*.integration.test.tsx (which mount the component
+// directly), this navigates through each tool's real route (Spanish slug), the
+// way a real user or the pre-render gets there: it checks that React.lazy() +
+// Suspense deliver the real widget and that the file -> conversion -> download
+// flow still works with the converters lazy-loaded.
 
 const addImageMock = vi.fn();
 const addPageMock = vi.fn();
@@ -22,8 +22,8 @@ vi.mock('jspdf', () => ({
   }),
 }));
 const html2canvasMock = vi.fn(async () => {
-  // canvas real: convertHtmlToPdf pagina recortando el canvas con drawImage(),
-  // y vitest-canvas-mock necesita un HTMLCanvasElement de verdad para simularlo.
+  // A real canvas: convertHtmlToPdf paginates by slicing it with drawImage(),
+  // and vitest-canvas-mock needs an actual HTMLCanvasElement to simulate that.
   const canvas = document.createElement('canvas');
   canvas.width = 800;
   canvas.height = 600;
@@ -42,7 +42,7 @@ async function renderRoute(path: string) {
       <AppRoutes />
     </MemoryRouter>
   );
-  // el fallback de Suspense debe estar visible ANTES de que resuelva el import() dinámico
+  // the Suspense fallback must be visible BEFORE the dynamic import() resolves
   expect(screen.getByText(/cargando herramienta/i)).toBeInTheDocument();
   await waitForElementToBeRemoved(() => screen.queryByText(/cargando herramienta/i));
   return { ...utils, consoleError };
@@ -83,7 +83,7 @@ describe('Navegación real por la URL de cada herramienta (React.lazy + Suspense
     expect(screen.getByRole('heading', { level: 1, name: /convertir html a pdf gratis online/i })).toBeInTheDocument();
 
     const user = userEvent.setup();
-    // "Subir archivo" es el modo por defecto; este flujo prueba "Pegar código".
+    // Upload ("Subir archivo") is the default mode; this flow tests paste ("Pegar código").
     await user.click(screen.getByRole('tab', { name: /pegar código/i }));
     await user.type(screen.getByPlaceholderText(/pegá tu html|pega tu html/i), '<p>Factura #1</p>');
     await user.click(screen.getByRole('button', { name: /convertir a pdf/i }));
@@ -152,7 +152,7 @@ describe('Navegación real por la URL de cada herramienta (React.lazy + Suspense
     await user.click(screen.getByRole('link', { name: /unir pdfs.*combina varios archivos pdf/is }));
 
     expect(await screen.findByRole('heading', { level: 1, name: /unir pdfs gratis online/i })).toBeInTheDocument();
-    // seguimos en el mismo árbol de React (no hubo remount de document): la Home ya no está
-    expect(screen.queryByRole('heading', { level: 1, name: /herramientas pdf para tu negocio/i })).not.toBeInTheDocument();
+    // still the same React tree (no document remount): Home is gone
+    expect(screen.queryByRole('heading', { level: 1, name: /herramientas pdf gratis online, sin registro/i })).not.toBeInTheDocument();
   });
 });

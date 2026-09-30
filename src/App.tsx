@@ -5,12 +5,15 @@ import CookieBanner from './components/CookieBanner';
 import { useAnalytics } from './lib/useAnalytics';
 import Home from './pages/Home';
 import ConverterPage from './pages/ConverterPage';
+import GuidesIndex from './pages/GuidesIndex';
+import GuidePage from './pages/GuidePage';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import About from './pages/About';
 import Contact from './pages/Contact';
 import NotFound from './pages/NotFound';
-import { TOOL_IDS, TOOL_SLUGS } from './lib/tools';
+import { GUIDES } from './content/guides';
+import { PAGE_SLUGS, TOOL_IDS, TOOL_SLUGS } from './lib/tools';
 
 export function AppRoutes() {
   useAnalytics();
@@ -24,10 +27,14 @@ export function AppRoutes() {
           {TOOL_IDS.map(id => (
             <Route key={id} path={`/${TOOL_SLUGS[id]}`} element={<ConverterPage tool={id} />} />
           ))}
-          <Route path="/privacy" element={<Privacy />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
+          <Route path={`/${PAGE_SLUGS.guides}`} element={<GuidesIndex />} />
+          {GUIDES.map(guide => (
+            <Route key={guide.slug} path={`/${PAGE_SLUGS.guides}/${guide.slug}`} element={<GuidePage guide={guide} />} />
+          ))}
+          <Route path={`/${PAGE_SLUGS.privacy}`} element={<Privacy />} />
+          <Route path={`/${PAGE_SLUGS.terms}`} element={<Terms />} />
+          <Route path={`/${PAGE_SLUGS.about}`} element={<About />} />
+          <Route path={`/${PAGE_SLUGS.contact}`} element={<Contact />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

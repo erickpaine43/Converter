@@ -2,14 +2,14 @@ import { describe, expect, it } from 'vitest';
 import DOMPurify from 'dompurify';
 
 /**
- * Nota sobre el alcance de este test: en jsdom no hay pipeline real de carga de
- * recursos ni de renderizado (confirmado empíricamente: ni <img onerror>, ni
- * <svg onload>, ni <script> ejecutan nada al insertarlos vía innerHTML, sanitizados
- * o no — jsdom no llega a intentar cargar la imagen ni evalúa SVG). Por eso no se
- * puede demostrar "no ejecuta" observando un efecto en tiempo de ejecución acá.
- * Lo que sí podemos —y debemos— probar es que DOMPurify efectivamente ELIMINA los
- * vectores peligrosos del árbol DOM resultante (scripts, atributos on*, iframes,
- * javascript: URLs), que es el control real que aplica nuestro código.
+ * Scope note: jsdom has no real resource loading or rendering pipeline
+ * (confirmed empirically: neither <img onerror>, <svg onload> nor <script> run
+ * anything when inserted via innerHTML, sanitized or not; jsdom never tries to
+ * load the image or evaluate the SVG). So "doesn't execute" can't be shown by
+ * observing a runtime effect here. What we can and should test is that
+ * DOMPurify actually REMOVES the dangerous vectors from the resulting DOM tree
+ * (scripts, on* attributes, iframes, javascript: URLs), which is the real
+ * control our code applies.
  */
 describe('Bloque 1: sanitización de HTML pegado por el usuario (DOMPurify)', () => {
   it('elimina <script> por completo', () => {
@@ -57,7 +57,7 @@ describe('Bloque 1: sanitización de HTML pegado por el usuario (DOMPurify)', ()
         expect(attr.name.toLowerCase().startsWith('on')).toBe(false);
       }
     });
-    // el contenido legítimo se preserva
+    // legitimate content is preserved
     expect(container.textContent).toContain('Factura #123');
   });
 

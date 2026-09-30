@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { decodeHtmlBytes, sniffDeclaredCharset } from './htmlEncoding';
 
-// Bytes tal como los guarda un editor en windows-1252 / ISO-8859-1: para los
-// caracteres del español (á é í ó ú ñ ü ¿ ¡) ambos usan el mismo byte que su
-// code point Unicode, así que 'latin1' de Node genera exactamente esos bytes.
+// Bytes as an editor saves them in windows-1252 / ISO-8859-1: for Spanish
+// characters (á é í ó ú ñ ü ¿ ¡) both use the same byte as their Unicode code
+// point, so Node's 'latin1' produces exactly those bytes.
 function latin1Bytes(text: string): Uint8Array {
   return new Uint8Array(Buffer.from(text, 'latin1'));
 }

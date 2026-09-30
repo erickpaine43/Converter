@@ -1,10 +1,18 @@
 import { useSyncExternalStore } from 'react';
-import { getCookieConsent, subscribeCookieConsent, type CookieConsent } from './cookieConsent';
+import {
+  getConsentSource, getCookieConsent, getServerConsentSource, subscribeCookieConsent,
+  type ConsentSource, type CookieConsent,
+} from './cookieConsent';
 
-// 'pending' = todavía no leímos localStorage (render de servidor / hidratación).
-// Mantener ese estado en SSR evita mismatches: GA solo arranca en el cliente, y el
-// banner se pre-renderiza siempre (el script inline de index.html lo oculta si ya
-// hay respuesta guardada).
+// 'pending' = localStorage hasn't been read yet (server render / hydration).
+// Keeping that state during SSR avoids mismatches: GA only starts on the client,
+// and the banner is always pre-rendered (the inline script in index.html hides
+// it if an answer is already stored).
 export function useCookieConsent(): CookieConsent | 'pending' {
   return useSyncExternalStore(subscribeCookieConsent, getCookieConsent, () => 'pending');
+}
+
+/** Who decides consent for this visitor (our own banner or Google's CMP). */
+export function useConsentSource(): ConsentSource {
+  return useSyncExternalStore(subscribeCookieConsent, getConsentSource, getServerConsentSource);
 }

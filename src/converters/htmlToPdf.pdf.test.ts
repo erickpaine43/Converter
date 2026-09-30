@@ -4,14 +4,15 @@ import * as pdfjsLib from 'pdfjs-dist';
 import { convertHtmlToPdf, MAX_PDF_PAGE_PT } from './htmlToPdf';
 import { makeSolidPngBytes } from '../test/fixtures';
 
-// A diferencia de htmlToPdf.test.ts, acá jsPDF es el REAL: el bug de pérdida de
-// contenido del modo "auto" no estaba en nuestra lógica sino en cómo jsPDF trata
-// una página de más de 14.400 unidades (la recorta, solo con un console.warn), y
-// eso un mock de jsPDF no lo puede detectar. Se genera el PDF de verdad y se lo
-// lee con pdf.js para verificar dónde quedó cada imagen y con qué resolución.
+// Unlike htmlToPdf.test.ts, jsPDF is REAL here: the "auto" mode content-loss bug
+// wasn't in our logic but in how jsPDF handles a page over 14,400 units (it
+// clips it with just a console.warn), which a jsPDF mock can't catch. The PDF is
+// actually generated and read back with pdf.js to check where each image ended
+// up and at what resolution.
 //
-// html2canvas sí se mockea (no corre en jsdom): devuelve un PNG real, liso, del
-// tamaño exacto que html2canvas generaría para el recorte y el scale pedidos.
+// html2canvas is still mocked (it doesn't run in jsdom): it returns a real,
+// solid-color PNG of exactly the size html2canvas would produce for the
+// requested crop and scale.
 interface CaptureOptions { scale: number; y?: number; width?: number; height?: number }
 
 vi.mock('html2canvas', () => ({
@@ -23,9 +24,9 @@ vi.mock('html2canvas', () => ({
   }),
 }));
 
-// El canvas de vitest-canvas-mock no produce un PNG válido (jsPDF lo rechazaría):
-// toDataURL devuelve acá un PNG real, liso, con las dimensiones del canvas. Sirve
-// tanto para las capturas como para las franjas que recorta A4/Carta.
+// vitest-canvas-mock's canvas doesn't produce a valid PNG (jsPDF would reject
+// it), so toDataURL returns a real solid-color PNG with the canvas dimensions.
+// Used both for captures and for the strips sliced in A4/Letter mode.
 HTMLCanvasElement.prototype.toDataURL = function (this: HTMLCanvasElement) {
   return `data:image/png;base64,${Buffer.from(makeSolidPngBytes(this.width, this.height, [40, 40, 40])).toString('base64')}`;
 };
@@ -36,8 +37,8 @@ function makeElement(width: number, height: number): HTMLElement {
   return el;
 }
 
-// page.getOperatorList() de pdf.js usa Map/WeakMap.prototype.getOrInsertComputed
-// (ES2026), que el realm de jsdom todavía no trae (ver src/test/pdfjsMock.ts).
+// pdf.js page.getOperatorList() uses Map/WeakMap.prototype.getOrInsertComputed
+// (ES2026), which jsdom's realm doesn't ship yet (see src/test/pdfjsMock.ts).
 for (const proto of [Map.prototype, WeakMap.prototype] as Array<Map<object, unknown>>) {
   if (typeof (proto as { getOrInsertComputed?: unknown }).getOrInsertComputed !== 'function') {
     Object.defineProperty(proto, 'getOrInsertComputed', {
@@ -53,7 +54,7 @@ for (const proto of [Map.prototype, WeakMap.prototype] as Array<Map<object, unkn
 
 interface PlacedImage { widthPx: number; heightPx: number; x: number; y: number; w: number; h: number }
 
-/** Lee la única página del PDF con pdf.js: su tamaño y cada imagen con su posición (pt) y resolución (px). */
+/** Reads the PDF's only page with pdf.js: its size and each image's position (pt) and resolution (px). */
 async function inspectPdf(bytes: ArrayBuffer) {
   const doc = await pdfjsLib.getDocument({ data: new Uint8Array(bytes) }).promise;
   const page = await doc.getPage(1);
@@ -65,7 +66,7 @@ async function inspectPdf(bytes: ArrayBuffer) {
     const args = ops.argsArray[i];
     if (fn === pdfjsLib.OPS.transform) ctm = args as number[];
     if (fn === pdfjsLib.OPS.paintImageXObject) {
-      // una imagen se dibuja en el cuadrado unitario escalado por la CTM: [w 0 0 h x y]
+      // an image is drawn into the unit square scaled by the CTM: [w 0 0 h x y]
       const [w, , , h, x, y] = ctm;
       images.push({ widthPx: args[1], heightPx: args[2], x, y, w, h });
     }
@@ -76,8 +77,8 @@ async function inspectPdf(bytes: ArrayBuffer) {
 let savedPdf: ArrayBuffer | null = null;
 
 describe('convertHtmlToPdf "auto" — PDF real (jsPDF sin mock, leído con pdf.js)', () => {
-  // jsPDF copia los métodos de jsPDF.API sobre cada instancia nueva (pisando su
-  // save() interno), así que se reemplaza ahí en vez de con vi.spyOn.
+  // jsPDF copies jsPDF.API methods onto every new instance (overriding its
+  // internal save()), so it's replaced there instead of with vi.spyOn.
   const api = jsPDF.API as { save?: unknown };
   const originalSave = api.save;
 
@@ -96,7 +97,7 @@ describe('convertHtmlToPdf "auto" — PDF real (jsPDF sin mock, leído con pdf.j
   it('reproducción del bug preexistente: jsPDF recorta en silencio una página de más de 14.400 unidades', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const pdf = new jsPDF({ unit: 'pt', format: [300, 20_000] });
-    expect(pdf.internal.pageSize.getHeight()).toBe(MAX_PDF_PAGE_PT); // 5.600 pt de contenido afuera
+    expect(pdf.internal.pageSize.getHeight()).toBe(MAX_PDF_PAGE_PT); // 5,600 pt of content would be cut off
     expect(warn).toHaveBeenCalled();
   });
 
@@ -109,18 +110,18 @@ describe('convertHtmlToPdf "auto" — PDF real (jsPDF sin mock, leído con pdf.j
 
     expect(savedPdf).not.toBeNull();
     const { pageCount, pageW, pageH, images } = await inspectPdf(savedPdf!);
-    // jsPDF no tuvo que recortar nada
+    // jsPDF didn't have to clip anything
     expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('14400'));
 
     expect(pageCount).toBe(1);
     expect(pageH).toBeLessThanOrEqual(MAX_PDF_PAGE_PT);
-    expect(pageW / pageH).toBeCloseTo(WIDTH / HEIGHT, 6); // misma proporción que el contenido
+    expect(pageW / pageH).toBeCloseTo(WIDTH / HEIGHT, 6); // same aspect ratio as the content
     expect(images.length).toBeGreaterThan(1);
 
-    // sin pérdida: cada imagen está completa DENTRO de la página, y apiladas
-    // (de arriba hacia abajo) cubren toda la altura sin huecos ni solapes.
+    // no loss: every image is fully INSIDE the page, and stacked top to bottom
+    // they cover the whole height with no gaps or overlaps.
     const EPS = 1e-3;
-    const topDown = [...images].sort((a, b) => b.y - a.y); // PDF: y crece hacia arriba
+    const topDown = [...images].sort((a, b) => b.y - a.y); // PDF: y grows upwards
     let expectedTop = pageH;
     for (const img of topDown) {
       expect(img.x).toBeCloseTo(0, 3);
@@ -132,8 +133,8 @@ describe('convertHtmlToPdf "auto" — PDF real (jsPDF sin mock, leído con pdf.j
     }
     expect(expectedTop).toBeCloseTo(0, 3);
 
-    // nitidez: las imágenes guardan 2 px por px CSS del contenido (scale 2),
-    // aunque la página se haya achicado para entrar en el máximo de un PDF.
+    // sharpness: images keep 2 px per content CSS px (scale 2), even though the
+    // page was scaled down to fit the PDF maximum.
     for (const img of images) expect(img.widthPx).toBe(WIDTH * 2);
     expect(images.reduce((sum, img) => sum + img.heightPx, 0)).toBe(HEIGHT * 2);
   }, 60_000);
@@ -150,9 +151,9 @@ describe('convertHtmlToPdf "auto" — PDF real (jsPDF sin mock, leído con pdf.j
       const { pageW, images } = await inspectPdf(savedPdf!);
       expect(images.length).toBeGreaterThan(0);
       for (const img of images) {
-        expect(img.widthPx).toBe(1418 * 2); // la captura incluye el desborde completo, a scale 2
+        expect(img.widthPx).toBe(1418 * 2); // the capture includes the full overflow, at scale 2
         expect(img.x).toBeGreaterThanOrEqual(-1e-3);
-        expect(img.x + img.w).toBeLessThanOrEqual(pageW + 1e-3); // y entra entera en el ancho de la página
+        expect(img.x + img.w).toBeLessThanOrEqual(pageW + 1e-3); // and fits entirely within the page width
         expect(img.w).toBeCloseTo(pageW, 3);
       }
     }

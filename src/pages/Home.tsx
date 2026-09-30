@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
 import SeoHead from '../components/SeoHead';
 import JsonLd from '../components/JsonLd';
-import { LOGO_URL, SITE_NAME, canonicalUrl } from '../lib/site';
-import { TOOL_LABELS, TOOL_SHORT_DESCS, toolPath, type ToolId } from '../lib/tools';
+import { CONTACT_EMAIL, LOGO_URL, OPERATOR_NAME, SITE_NAME, canonicalUrl } from '../lib/site';
+import { GUIDES } from '../content/guides';
+import { TOOL_LABELS, TOOL_SHORT_DESCS, guidePath, pagePath, toolPath, type ToolId } from '../lib/tools';
 import {
   ClipIcon, ImageIcon, CodeIcon, DocumentArrowIcon, DocumentTextIcon,
   LockIcon, BoltIcon, TagIcon, ShieldCheckIcon,
@@ -23,7 +24,7 @@ const secondaryTools: { id: ToolId; Icon: typeof ClipIcon }[] = [
 const features = [
   { Icon: LockIcon, title: 'Privado', desc: 'Todo se procesa en tu navegador. Tus archivos nunca se suben a ningún servidor.' },
   { Icon: BoltIcon, title: 'Rápido', desc: 'Sin colas de espera ni subidas a servidores: la conversión ocurre directamente en tu dispositivo.' },
-  { Icon: TagIcon, title: 'Gratis', desc: 'Sin registro, sin suscripciones. Todas las herramientas son 100% gratuitas.' },
+  { Icon: TagIcon, title: 'Gratis', desc: 'Sin registro, sin suscripciones y sin límite de conversiones. Todas las herramientas son 100% gratuitas.' },
 ];
 
 export default function Home() {
@@ -42,6 +43,14 @@ export default function Home() {
             name: SITE_NAME,
             url: canonicalUrl('/'),
             logo: LOGO_URL,
+            founder: { '@type': 'Person', name: OPERATOR_NAME },
+            contactPoint: {
+              '@type': 'ContactPoint',
+              contactType: 'customer support',
+              email: CONTACT_EMAIL,
+              url: canonicalUrl(pagePath('contact')),
+              availableLanguage: 'es',
+            },
           },
           {
             '@type': 'WebSite',
@@ -55,8 +64,8 @@ export default function Home() {
       }} />
 
       <section className="hero">
-        <h1 className="hero-title">Herramientas PDF para tu negocio</h1>
-        <p className="hero-subtitle">Convertí, unificá y extraé contenido de tus documentos directamente en el navegador. Sin registro, sin suscripciones — gratis para uso normal.</p>
+        <h1 className="hero-title">Herramientas PDF gratis online, sin registro</h1>
+        <p className="hero-subtitle">Une, convierte y extrae el contenido de tus PDF directamente en el navegador. Gratis, sin registro y sin límite de conversiones.</p>
         <span className="hero-trust">
           <ShieldCheckIcon width={16} height={16} />
           <span>100% en tu navegador — ningún archivo se sube a un servidor</span>
@@ -85,7 +94,7 @@ export default function Home() {
           <div key={f.title} className="feature-item">
             <div className="feature-icon"><f.Icon /></div>
             <div>
-              {/* No es un heading: son etiquetas cortas, y un h3 acá saltaba del h1 al h3 */}
+              {/* Not a heading: these are short labels, and an h3 here skipped from h1 to h3 */}
               <p className="feature-title">{f.title}</p>
               <p className="feature-desc">{f.desc}</p>
             </div>
@@ -109,9 +118,20 @@ export default function Home() {
         <ul>
           <li><strong>Unir PDFs:</strong> Combina múltiples archivos PDF en un solo documento. Puedes reordenarlos antes de unirlos.</li>
           <li><strong>Convertir imágenes a PDF:</strong> Junta tus fotos JPG o PNG en un único documento PDF. Ideal para crear portafolios, informes o documentos escaneados.</li>
-          <li><strong>Convertir HTML a PDF:</strong> Genera un PDF a partir de código HTML. Útil para crear facturas, reportes o cualquier documento con formato personalizado.</li>
+          <li><strong>Convertir HTML a PDF:</strong> Convierte en PDF un archivo o código HTML: documentos guardados como página web que no se abren en un lector de PDF, o facturas y reportes que un sistema genera en HTML.</li>
           <li><strong>Convertir PDF a imágenes:</strong> Extrae cada página de un PDF como imagen PNG o JPEG en alta resolución.</li>
           <li><strong>Extraer texto de PDF:</strong> Obtén el contenido de texto de cualquier PDF para copiarlo o editarlo libremente.</li>
+        </ul>
+
+        <h2>Guías</h2>
+        <p>
+          Además de las herramientas, publicamos guías paso a paso para resolver los problemas más
+          comunes con documentos PDF:
+        </p>
+        <ul>
+          {GUIDES.map(g => (
+            <li key={g.slug}><Link to={guidePath(g.slug)}>{g.h1}</Link></li>
+          ))}
         </ul>
       </div>
     </main>

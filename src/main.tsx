@@ -10,9 +10,9 @@ const app = (
   </StrictMode>
 )
 
-// En el build cada ruta llega pre-renderizada (scripts/prerender.mjs): se hidrata
-// ese HTML en vez de descartarlo y volver a pintarlo. Con `vite dev` el #root
-// llega vacío, así que ahí se renderiza desde cero.
+// In the build every route comes pre-rendered (scripts/prerender.mjs), so that
+// HTML is hydrated instead of thrown away and repainted. With `vite dev` #root
+// is empty, so it renders from scratch there.
 if (container.hasChildNodes()) {
   hydrateRoot(container, app)
 } else {

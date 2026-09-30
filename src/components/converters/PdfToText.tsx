@@ -18,7 +18,7 @@ export default function PdfToText() {
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
 
-  // Flujo común del input y del drag & drop.
+  // Shared flow for the file input and drag & drop.
   const selectFile = async (f: File | null, input?: HTMLInputElement) => {
     if (f) {
       const validationError = validateFiles([f]);

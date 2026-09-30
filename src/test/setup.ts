@@ -4,20 +4,20 @@ import { vi } from 'vitest';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 
-// El polyfill de URL.createObjectURL que trae Vitest para jsdom espera Blobs creados
-// con SU PROPIO constructor interno (lee un campo privado `_buffer`); un Blob nativo
-// de jsdom (como el que crea nuestro código real) lo hace explotar con
-// "Cannot read properties of undefined (reading '_buffer')". No es un bug de la app
-// -en un navegador real esto funciona sin problema-, así que lo reemplazamos acá por
-// un mock liviano y determinístico, suficiente para probar nuestra propia lógica
-// (que se llame, que el link de descarga tenga una URL, que se revoque al desmontar).
+// The URL.createObjectURL polyfill Vitest ships for jsdom expects Blobs created
+// with ITS OWN internal constructor (it reads a private `_buffer` field); a native
+// jsdom Blob (like the one our real code creates) makes it throw
+// "Cannot read properties of undefined (reading '_buffer')". Not an app bug (it
+// works fine in a real browser), so it's replaced here with a small deterministic
+// mock, enough to test our own logic (that it's called, that the download link
+// gets a URL, that it's revoked on unmount).
 let objectUrlCounter = 0;
 URL.createObjectURL = vi.fn(() => `blob:mock-url-${objectUrlCounter++}`);
 URL.revokeObjectURL = vi.fn(() => {});
 
-// El contexto vm de jsdom tiene sus propios intrínsecos (Uint8Array, etc.), separados
-// de los de Node. pdfjs-dist usa `Uint8Array.prototype.toHex` (ES2024) para hashear;
-// si el realm de jsdom no lo trae todavía, lo poliriamos acá.
+// jsdom's vm context has its own intrinsics (Uint8Array, etc.), separate from
+// Node's. pdfjs-dist uses `Uint8Array.prototype.toHex` (ES2024) for hashing; if
+// jsdom's realm doesn't have it yet, it's polyfilled here.
 if (typeof Uint8Array.prototype.toHex !== 'function') {
   Object.defineProperty(Uint8Array.prototype, 'toHex', {
     configurable: true,
@@ -30,12 +30,12 @@ if (typeof Uint8Array.prototype.toHex !== 'function') {
   });
 }
 
-// jsdom no ejecuta carga real de recursos: asignar `new Image().src` nunca dispara
-// load/error por sí solo, lo que haría que cualquier <img> de un HTML de prueba
-// cuelgue hasta el timeout real de 5s de resolveHtmlImages (HtmlToPdf). Por defecto
-// la reemplazamos acá por una versión que falla rápido (microtask); los tests que
-// necesitan simular una carga exitosa/controlada reemplazan globalThis.Image puntualmente
-// y lo restauran en su propio afterEach.
+// jsdom doesn't actually load resources: setting `new Image().src` never fires
+// load/error on its own, so any <img> in a test HTML would hang until
+// resolveHtmlImages' real 5s timeout (HtmlToPdf). By default it's replaced here
+// with a version that fails fast (in a microtask); tests that need a successful
+// or controlled load swap globalThis.Image themselves and restore it in their
+// own afterEach.
 class FastFailingImage {
   onload: (() => void) | null = null;
   onerror: (() => void) | null = null;
@@ -47,11 +47,11 @@ globalThis.Image = FastFailingImage as unknown as typeof Image;
 
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Los converters fijan GlobalWorkerOptions.workerSrc con `new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url)`.
-// Bajo Vitest, import.meta.url de nuestros propios módulos es una URL http: servida por vite-node,
-// y Node no puede hacer `import()` de esa URL para levantar el fake worker. Acá la reemplazamos
-// por la ruta real en disco (como file:// URL, requerido en Windows), ignorando cualquier
-// intento posterior de pisarla.
+// The converters set GlobalWorkerOptions.workerSrc with `new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url)`.
+// Under Vitest, import.meta.url of our own modules is an http: URL served by vite-node,
+// and Node can't `import()` that URL to spin up the fake worker. It's replaced here with
+// the real path on disk (as a file:// URL, required on Windows), and any later attempt
+// to overwrite it is ignored.
 const require = createRequire(import.meta.url);
 const realWorkerPath = pathToFileURL(require.resolve('pdfjs-dist/build/pdf.worker.min.mjs')).toString();
 
@@ -61,6 +61,6 @@ Object.defineProperty(pdfjsLib.GlobalWorkerOptions, 'workerSrc', {
     return realWorkerPath;
   },
   set() {
-    // ignorado a propósito
+    // intentionally ignored
   },
 });

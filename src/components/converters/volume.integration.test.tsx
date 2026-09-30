@@ -27,7 +27,7 @@ describe('Bloque 4: casos límite de volumen', () => {
     const downloadLink = await screen.findByRole('link', { name: /descargar pdf unido/i });
     expect(downloadLink).toBeInTheDocument();
 
-    // ahora agregamos uno más -> debería bloquearse y NO sumarse a la lista
+    // now add one more -> it should be blocked and NOT added to the list
     const oneMore = await makePdfFile('extra.pdf', 1);
     await user.upload(getFileInput(container), [oneMore]);
 
@@ -51,11 +51,11 @@ describe('Bloque 4: casos límite de volumen', () => {
       await screen.findByRole('link', { name: /descargar pdf/i });
     }
 
-    // por cada ronda: 1 URL de preview de la imagen + 1 URL de descarga = createObjectURL
-    // y cada ronda revoca el download URL de la ronda anterior antes de crear el nuevo.
-    // Lo importante para "no leak": el número de revokes no puede quedarse fijo en 0
-    // mientras createObjectURL sigue subiendo ronda tras ronda.
-    expect(createSpy.mock.calls.length).toBeGreaterThanOrEqual(8); // 4 rondas x (preview + descarga)
-    expect(revokeSpy.mock.calls.length).toBeGreaterThanOrEqual(3); // al menos 3 downloadUrl viejos revocados
+    // each round: 1 image preview URL + 1 download URL = createObjectURL,
+    // and each round revokes the previous round's download URL before creating a new one.
+    // What matters for "no leak": the revoke count can't stay stuck at 0 while
+    // createObjectURL keeps growing round after round.
+    expect(createSpy.mock.calls.length).toBeGreaterThanOrEqual(8); // 4 rounds x (preview + download)
+    expect(revokeSpy.mock.calls.length).toBeGreaterThanOrEqual(3); // at least 3 old downloadUrls revoked
   }, 20000);
 });

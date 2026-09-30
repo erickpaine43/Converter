@@ -10,12 +10,12 @@ function namedError(name: string, message: string): Error {
 describe('Bloque 1: toFriendlyErrorMessage', () => {
   it('mapea PasswordException (pdfjs-dist) al mensaje de PDF con contraseña', () => {
     const err = namedError('PasswordException', 'No password given');
-    expect(toFriendlyErrorMessage(err)).toBe('Este PDF está protegido con contraseña. Quitá la protección antes de subirlo.');
+    expect(toFriendlyErrorMessage(err)).toBe('Este PDF está protegido con contraseña. Quita la protección antes de subirlo.');
   });
 
   it('mapea EncryptedPDFError (pdf-lib) al mensaje de PDF con contraseña', () => {
     const err = namedError('EncryptedPDFError', 'Input document to `PDFDocument.load` is encrypted.');
-    expect(toFriendlyErrorMessage(err)).toBe('Este PDF está protegido con contraseña. Quitá la protección antes de subirlo.');
+    expect(toFriendlyErrorMessage(err)).toBe('Este PDF está protegido con contraseña. Quita la protección antes de subirlo.');
   });
 
   it('mapea InvalidPDFException al mensaje de PDF dañado', () => {

@@ -11,7 +11,7 @@ describe('Bloque 1: convertImagesToPdf — entradas inválidas/maliciosas', () =
   });
 
   it('archivo .jpg cuyo contenido real es otro formato (ej. bmp/webp renombrado) se rechaza con mensaje claro', async () => {
-    // Contenido no es un JPEG real, aunque el navegador reportó mime image/jpeg.
+    // Content isn't a real JPEG, even though the browser reported image/jpeg.
     const fakeJpeg = toFile('no soy un jpeg real, soy texto plano', 'foto.jpg', 'image/jpeg');
     await expect(convertImagesToPdf([fakeJpeg])).rejects.toBeTruthy();
   });

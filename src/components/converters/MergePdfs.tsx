@@ -23,7 +23,7 @@ export default function MergePdfs() {
     };
   }, []);
 
-  // Flujo común del input y del drag & drop. Devuelve false si se rechazó.
+  // Shared flow for the file input and drag & drop. Returns false if rejected.
   const addFiles = (newFiles: File[]): boolean => {
     const validationError = validateFiles(newFiles, { maxCount: MAX_FILES_MERGE, existingCount: items.length });
     if (validationError) {
@@ -59,8 +59,8 @@ export default function MergePdfs() {
     if (downloadUrlRef.current) URL.revokeObjectURL(downloadUrlRef.current);
     setDownloadUrl(null);
     try {
-      // pdf-lib (~510 KB) se baja recién al unir: si se importara arriba, el
-      // widget no aparecería hasta terminar de descargarlo.
+      // pdf-lib (~510 KB) is only downloaded when merging: importing it at the
+      // top would keep the widget from showing until the download finished.
       const { mergePdfs } = await import('../../converters/MergePdfs');
       const pdfBytes = await mergePdfs(
         items.map(i => i.file),

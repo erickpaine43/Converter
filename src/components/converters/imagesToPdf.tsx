@@ -33,7 +33,7 @@ export default function ImagesToPdf() {
     };
   }, []);
 
-  // Flujo común del input y del drag & drop. Devuelve false si se rechazó.
+  // Shared flow for the file input and drag & drop. Returns false if rejected.
   const addFiles = (newFiles: File[]): boolean => {
     const validationError = validateFiles(newFiles, { maxCount: MAX_FILES_IMAGES, existingCount: items.length });
     if (validationError) {

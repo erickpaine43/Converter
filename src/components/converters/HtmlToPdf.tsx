@@ -30,11 +30,12 @@ export default function HtmlToPdf() {
   const imageBlobUrlsRef = useRef<string[]>([]);
 
   const safeHtml = useMemo(() => DOMPurify.sanitize(html), [html]);
-  // Memoizado por referencia (no solo el string): dangerouslySetInnerHTML compara
-  // la IDENTIDAD del objeto {__html} entre renders, no su contenido. Un objeto
-  // literal inline se recrea en cada render y React reaplicaría innerHTML = safeHtml
-  // en CADA re-render (ej. al cambiar resolvingImages/unavailableImageCount más abajo),
-  // pisando las mutaciones de resolveHtmlImages (blobs/placeholders) apenas terminan.
+  // Memoized by reference (not just the string): dangerouslySetInnerHTML compares
+  // the IDENTITY of the {__html} object between renders, not its content. An
+  // inline object literal is recreated on every render, so React would reapply
+  // innerHTML = safeHtml on EVERY re-render (e.g. when resolvingImages or
+  // unavailableImageCount change below), wiping out resolveHtmlImages' mutations
+  // (blobs/placeholders) right after they finish.
   const previewHtml = useMemo(() => ({ __html: safeHtml }), [safeHtml]);
 
   const revokeImageBlobUrls = () => {
@@ -42,10 +43,10 @@ export default function HtmlToPdf() {
     imageBlobUrlsRef.current = [];
   };
 
-  // Resuelve las <img> de la vista previa (base64 / archivo adjunto / placeholder
-  // de "no disponible") cada vez que cambia el HTML o los archivos de imagen
-  // adjuntos, así el aviso "N imágenes no disponibles" y la vista previa reflejan
-  // el resultado final ANTES de que el usuario llegue a tocar "Convertir a PDF".
+  // Resolves the preview's <img> elements (base64 / attached file / "unavailable"
+  // placeholder) whenever the HTML or the attached images change, so the
+  // "N images unavailable" notice and the preview show the final result BEFORE
+  // the user clicks "Convertir a PDF".
   useEffect(() => {
     const container = previewRef.current;
     if (!container || !html) {
@@ -57,10 +58,10 @@ export default function HtmlToPdf() {
 
     let cancelled = false;
     setResolvingImages(true);
-    // Reseteamos a mano al HTML sanitizado "limpio": si solo cambiaron los
-    // archivos de imagen adjuntos (no el html), React no vuelve a tocar este
-    // nodo porque el string __html no cambió, y sin este reset reprocesaríamos
-    // <img> ya reemplazadas por blobs/placeholders de una pasada anterior.
+    // Manually reset to the clean sanitized HTML: if only the attached images
+    // changed (not the html), React won't touch this node again because the
+    // __html string is the same, and without this reset we'd reprocess <img>
+    // elements already replaced by blobs/placeholders in a previous pass.
     container.innerHTML = safeHtml;
     revokeImageBlobUrls();
 
@@ -91,7 +92,7 @@ export default function HtmlToPdf() {
     setError(null);
   };
 
-  // Flujo común del input y del drag & drop. Devuelve false si se rechazó.
+  // Shared flow for the file input and drag & drop. Returns false if rejected.
   const addFiles = (files: File[]): boolean => {
     if (!files.length) return true;
 
@@ -99,7 +100,7 @@ export default function HtmlToPdf() {
     const imageCandidates = files.filter(f => IMAGE_EXTENSION_RE.test(f.name));
 
     if (htmlCandidates.length === 0) {
-      setError('Tenés que incluir un archivo .html o .htm en la selección.');
+      setError('Tienes que incluir un archivo .html o .htm en la selección.');
       return false;
     }
     if (htmlCandidates.length > 1) {
@@ -115,8 +116,8 @@ export default function HtmlToPdf() {
 
     setError(null);
     const mainFile = htmlCandidates[0];
-    // Se leen los bytes crudos (no readAsText, que asume UTF-8) para poder
-    // respetar el charset que declara el propio HTML (ej. windows-1252).
+    // Read the raw bytes (not readAsText, which assumes UTF-8) so the charset
+    // declared by the HTML itself (e.g. windows-1252) can be honored.
     mainFile.arrayBuffer().then(
       buffer => {
         const text = decodeHtmlBytes(buffer);
@@ -129,7 +130,7 @@ export default function HtmlToPdf() {
         setImageFiles(imageCandidates);
       },
       () => {
-        setError(toFriendlyErrorMessage(new AppError('No se pudo leer el archivo. Probá de nuevo.')));
+        setError(toFriendlyErrorMessage(new AppError('No se pudo leer el archivo. Inténtalo de nuevo.')));
       }
     );
     return true;
@@ -151,7 +152,7 @@ export default function HtmlToPdf() {
   const handleConvert = async () => {
     if (!previewRef.current || !html) return;
     if (html.length > MAX_HTML_LENGTH) {
-      setError(`El HTML supera el límite de ${Math.round(MAX_HTML_LENGTH / 1000)} KB. Reducí el contenido e intentá de nuevo.`);
+      setError(`El HTML supera el límite de ${Math.round(MAX_HTML_LENGTH / 1000)} KB. Reduce el contenido e inténtalo de nuevo.`);
       return;
     }
     setLoading(true); setError(null); setProgress(null);
@@ -200,7 +201,7 @@ export default function HtmlToPdf() {
             />
             <div className="file-drop-icon"><CodeIcon /></div>
             <p><span>{isDragging ? 'Suelta los archivos aquí' : 'Selecciona un archivo HTML o arrástralo aquí'}</span></p>
-            <p>.html, .htm — podés incluir además sus imágenes (.jpg, .png, .gif, .webp)</p>
+            <p>.html, .htm — puedes incluir además sus imágenes (.jpg, .png, .gif, .webp)</p>
           </label>
           {htmlFileName && (
             <div className="file-list-item">

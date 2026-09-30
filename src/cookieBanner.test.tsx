@@ -9,8 +9,8 @@ import { waitFor } from '@testing-library/react';
 import { AppRoutes } from './App';
 import { COOKIE_ANSWERED_CLASS, COOKIE_CONSENT_KEY, clearCookieConsent } from './lib/cookieConsent';
 
-// El banner se pre-renderiza siempre; un script inline de index.html lo oculta
-// antes del primer paint si ya hay respuesta guardada.
+// The banner is always pre-rendered; an inline script in index.html hides it
+// before first paint if an answer is already stored.
 
 let root: Root | null = null;
 let container: HTMLDivElement | null = null;
@@ -57,7 +57,7 @@ async function hydrateHome() {
   return { serverHtml, recoverableErrors, hydrationWarnings };
 }
 
-// Ejecuta el script inline real de index.html, como lo haría el navegador en <head>.
+// Runs the real inline script from index.html, as the browser would in <head>.
 function runInlineHeadScript() {
   const html = readFileSync(path.resolve(__dirname, '../index.html'), 'utf-8');
   const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];

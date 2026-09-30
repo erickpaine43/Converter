@@ -1,7 +1,7 @@
-// Genera HTML estático por ruta (title/description/canonical/H1 ya presentes
-// en el marcado crudo, sin depender de que el crawler ejecute JS) a partir del
-// bundle SSR construido en dist-ssr/, y dist/sitemap.xml a partir de la misma
-// lista de rutas. Se corre después de `vite build`.
+// Generates static HTML per route (title/description/canonical/H1 already in
+// the raw markup, without relying on crawlers running JS) from the SSR bundle
+// built into dist-ssr/, plus dist/sitemap.xml from the same route list. Runs
+// after `vite build`.
 import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -14,24 +14,26 @@ const distDir = path.join(root, 'dist');
 const ssrDir = path.join(root, 'dist-ssr');
 const ssrEntry = path.join(ssrDir, 'entry-server.js');
 
-// Cualquier ruta que no matchee en AppRoutes cae en el catch-all <NotFound />;
-// se renderiza con esta URL inventada y se escribe como dist/404.html.
+// Any route that doesn't match in AppRoutes hits the <NotFound /> catch-all; it's
+// rendered with this made-up URL and written to dist/404.html.
 const NOT_FOUND_ROUTE = '/__not-found__';
 
-// Cada ruta sale como <ruta>/index.html, que Netlify sirve con 200 en la URL
-// CON barra final (/about/); /about responde 301 hacia ahí. Por eso canonical,
-// og:url y sitemap.xml usan siempre la forma con barra (ver SeoHead.tsx).
-// La 404 es la excepción: va a dist/404.html, que Netlify sirve con status 404.
+// Each route is written as <route>/index.html, which Netlify serves with 200 at
+// the URL WITH trailing slash (/contacto/); /contacto 301s there. That's why
+// canonical, og:url and sitemap.xml always use the trailing-slash form (see
+// SeoHead.tsx). The 404 is the exception: it goes to dist/404.html, which
+// Netlify serves with a 404 status.
 function outputPathFor(route) {
   if (route === '/') return path.join(distDir, 'index.html');
   if (route === NOT_FOUND_ROUTE) return path.join(distDir, '404.html');
   return path.join(distDir, route.replace(/^\//, ''), 'index.html');
 }
 
-// Archivos cuyo contenido define cada página, para el <lastmod> del sitemap.
-// Las herramientas comparten ConverterPage.tsx (textos, FAQ, metadata), así que
-// un cambio ahí actualiza la fecha de las 5. Si se agrega una ruta sin entrada
-// acá, el build falla a propósito.
+// Files whose content defines each page, used for the sitemap's <lastmod>.
+// All tools share ConverterPage.tsx (texts, FAQ, metadata), so a change there
+// updates the date of all 5. Each guide has its own file in
+// src/content/guides/. Adding a route without an entry here fails the build on
+// purpose.
 const TOOL_WIDGETS = {
   'merge-pdfs': 'MergePdfs.tsx',
   'images-to-pdf': 'imagesToPdf.tsx',
@@ -40,16 +42,20 @@ const TOOL_WIDGETS = {
   'html-to-pdf': 'HtmlToPdf.tsx',
 };
 
-function pageSources(toolSlugs) {
+function pageSources(toolSlugs, pageSlugs, guideFiles) {
   const sources = {
     '/': ['src/pages/Home.tsx'],
-    '/about': ['src/pages/About.tsx'],
-    '/contact': ['src/pages/Contact.tsx'],
-    '/privacy': ['src/pages/Privacy.tsx'],
-    '/terms': ['src/pages/Terms.tsx'],
+    [`/${pageSlugs.about}`]: ['src/pages/About.tsx'],
+    [`/${pageSlugs.contact}`]: ['src/pages/Contact.tsx'],
+    [`/${pageSlugs.privacy}`]: ['src/pages/Privacy.tsx'],
+    [`/${pageSlugs.terms}`]: ['src/pages/Terms.tsx'],
+    [`/${pageSlugs.guides}`]: ['src/pages/GuidesIndex.tsx', 'src/content/guides/index.ts'],
   };
+  for (const [slug, file] of Object.entries(guideFiles)) {
+    sources[`/${pageSlugs.guides}/${slug}`] = [`src/content/guides/${file}`];
+  }
   for (const [id, slug] of Object.entries(toolSlugs)) {
-    if (!TOOL_WIDGETS[id]) throw new Error(`Falta el componente de la herramienta "${id}" en TOOL_WIDGETS (scripts/prerender.mjs).`);
+    if (!TOOL_WIDGETS[id]) throw new Error(`Missing component for tool "${id}" in TOOL_WIDGETS (scripts/prerender.mjs).`);
     sources[`/${slug}`] = ['src/pages/ConverterPage.tsx', `src/components/converters/${TOOL_WIDGETS[id]}`];
   }
   return sources;
@@ -61,12 +67,12 @@ function git(args) {
   return execFileSync('git', args, { cwd: root, encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
 }
 
-// Fecha (YYYY-MM-DD) del último commit que tocó los archivos de la página. Si
-// hay cambios sin commitear en ellos (build local), o no hay historial de git
-// disponible, se usa la fecha de hoy.
+// Date (YYYY-MM-DD) of the last commit that touched the page's files. Falls back
+// to today's date if they have uncommitted changes (local build) or there's no
+// git history available.
 function lastModified(files) {
   for (const file of files) {
-    if (!existsSync(path.join(root, file))) throw new Error(`No existe ${file} (pageSources en scripts/prerender.mjs).`);
+    if (!existsSync(path.join(root, file))) throw new Error(`${file} does not exist (pageSources in scripts/prerender.mjs).`);
   }
   try {
     if (git(['status', '--porcelain', '--', ...files])) return today();
@@ -78,7 +84,7 @@ function lastModified(files) {
 
 function buildSitemap(routes, sources, canonicalUrl) {
   const urls = routes.map(route => {
-    if (!sources[route]) throw new Error(`La ruta ${route} no tiene archivos fuente en pageSources (scripts/prerender.mjs).`);
+    if (!sources[route]) throw new Error(`Route ${route} has no source files in pageSources (scripts/prerender.mjs).`);
     return `  <url><loc>${canonicalUrl(route)}</loc><lastmod>${lastModified(sources[route])}</lastmod></url>`;
   });
   return [
@@ -90,9 +96,9 @@ function buildSitemap(routes, sources, canonicalUrl) {
   ].join('\n');
 }
 
-// React 19 hoistea <title>/<meta>/<link> al PRINCIPIO del string de
-// renderToString, de forma contigua, sin importar dónde se hayan renderizado
-// en el árbol. Los separamos del resto (el HTML real de #root).
+// React 19 hoists <title>/<meta>/<link> to the START of the renderToString
+// output, contiguously, no matter where they were rendered in the tree. They're
+// split from the rest (the actual #root HTML).
 const HOISTED_TAG_RE = /^(<title>[\s\S]*?<\/title>|<meta[^>]*\/>|<link[^>]*\/>)/;
 
 function splitHoisted(html) {
@@ -109,7 +115,7 @@ function splitHoisted(html) {
 function injectIntoTemplate(template, rendered) {
   const { head, body } = splitHoisted(rendered);
 
-  // saca el <title> estático del shell: el render ya trae el suyo propio.
+  // drop the shell's static <title>: the render brings its own.
   let page = template.replace(/<title>[\s\S]*?<\/title>/, '');
   page = page.replace('</head>', `    ${head}\n  </head>`);
   page = page.replace('<div id="root"></div>', `<div id="root">${body}</div>`);
@@ -119,11 +125,11 @@ function injectIntoTemplate(template, rendered) {
 
 async function main() {
   if (!existsSync(ssrEntry)) {
-    throw new Error(`No se encontró el bundle SSR en ${ssrEntry}. Corré "vite build --ssr src/entry-server.tsx --outDir dist-ssr" antes.`);
+    throw new Error(`SSR bundle not found at ${ssrEntry}. Run "vite build --ssr src/entry-server.tsx --outDir dist-ssr" first.`);
   }
   const template = await readFile(path.join(distDir, 'index.html'), 'utf-8');
-  // La lista de rutas vive en src/lib/tools.ts y llega re-exportada por el bundle SSR.
-  const { render, PRERENDER_ROUTES, TOOL_SLUGS, canonicalUrl } = await import(pathToFileURL(ssrEntry).href);
+  // The route list lives in src/lib/tools.ts and is re-exported by the SSR bundle.
+  const { render, PRERENDER_ROUTES, TOOL_SLUGS, PAGE_SLUGS, GUIDE_FILES, canonicalUrl } = await import(pathToFileURL(ssrEntry).href);
 
   for (const route of [...PRERENDER_ROUTES, NOT_FOUND_ROUTE]) {
     const rendered = render(route);
@@ -134,8 +140,8 @@ async function main() {
     console.log(`prerendered ${route} -> ${path.relative(root, outPath)}`);
   }
 
-  // Mismas rutas que se acaban de pre-renderizar (la 404 no va al sitemap).
-  const sitemap = buildSitemap(PRERENDER_ROUTES, pageSources(TOOL_SLUGS), canonicalUrl);
+  // Same routes that were just pre-rendered (the 404 isn't in the sitemap).
+  const sitemap = buildSitemap(PRERENDER_ROUTES, pageSources(TOOL_SLUGS, PAGE_SLUGS, GUIDE_FILES), canonicalUrl);
   await writeFile(path.join(distDir, 'sitemap.xml'), sitemap, 'utf-8');
   console.log(`sitemap -> dist/sitemap.xml (${PRERENDER_ROUTES.length} URLs)`);
 

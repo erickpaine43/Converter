@@ -3,12 +3,12 @@ import * as pdfjsLib from 'pdfjs-dist';
 import { makePdfBytes } from './fixtures';
 
 /**
- * El render real de pdfjs-dist (page.render) usa APIs de motor JS muy nuevas
- * (ej. Map.prototype.getOrInsertComputed) que el realm de jsdom todavía no expone,
- * y tronaría en cualquier test que dibuje una página real. Mockeamos `render` en el
- * prototype compartido de PDFPageProxy (afecta a toda instancia de página, presente
- * y futura) para poder probar nuestra propia lógica de loop/progreso/formato sin
- * depender de esa pieza de pdf.js que no es nuestra responsabilidad.
+ * pdfjs-dist's real render (page.render) uses very recent JS engine APIs (e.g.
+ * Map.prototype.getOrInsertComputed) that jsdom's realm doesn't expose yet, so
+ * it would crash any test that draws a real page. `render` is mocked on the
+ * shared PDFPageProxy prototype (affecting every page instance, present and
+ * future) so we can test our own loop/progress/format logic without depending
+ * on that part of pdf.js, which isn't ours to test.
  */
 export async function mockPdfPageRender() {
   const bytes = await makePdfBytes(1);

@@ -2,10 +2,9 @@ import { useSyncExternalStore } from 'react';
 
 const subscribe = () => () => {};
 
-// false en el render de servidor y durante la hidratación (usa el snapshot de
-// servidor, así el primer render del cliente calza con el HTML pre-renderizado);
-// true en el re-render que React hace apenas termina de hidratar, y siempre en
-// renders puramente de cliente.
+// false on the server render and during hydration (it uses the server snapshot,
+// so the client's first render matches the pre-rendered HTML); true on the
+// re-render React does right after hydrating, and always on client-only renders.
 export function useHydrated(): boolean {
   return useSyncExternalStore(subscribe, () => true, () => false);
 }

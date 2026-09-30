@@ -9,9 +9,9 @@ vi.mock('pdfjs-dist', async (importOriginal) => {
   return { ...actual, getDocument: vi.fn(actual.getDocument) };
 });
 
-// Nota: no usamos vi.restoreAllMocks() en afterEach acá porque tiraría abajo el
-// mock de `render` (necesario para TODOS los tests del archivo). El mock de
-// getDocument de más abajo usa mockReturnValueOnce, que se autoconsume solo.
+// Note: no vi.restoreAllMocks() in afterEach here, since it would tear down the
+// `render` mock (needed by EVERY test in this file). The getDocument mock below
+// uses mockReturnValueOnce, which consumes itself.
 beforeAll(async () => {
   await mockPdfPageRender();
 });

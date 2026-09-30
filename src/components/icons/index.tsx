@@ -19,7 +19,7 @@ function Base({ children, ...props }: IconProps & { children: React.ReactNode })
   );
 }
 
-/** Imágenes a PDF */
+/** Images to PDF */
 export function ImageIcon(props: IconProps) {
   return (
     <Base {...props}>
@@ -30,7 +30,7 @@ export function ImageIcon(props: IconProps) {
   );
 }
 
-/** HTML a PDF */
+/** HTML to PDF */
 export function CodeIcon(props: IconProps) {
   return (
     <Base {...props}>
@@ -41,7 +41,7 @@ export function CodeIcon(props: IconProps) {
   );
 }
 
-/** PDF a Imágenes */
+/** PDF to images */
 export function DocumentArrowIcon(props: IconProps) {
   return (
     <Base {...props}>
@@ -53,7 +53,7 @@ export function DocumentArrowIcon(props: IconProps) {
   );
 }
 
-/** Unir PDFs */
+/** Merge PDFs */
 export function ClipIcon(props: IconProps) {
   return (
     <Base {...props}>
@@ -62,7 +62,7 @@ export function ClipIcon(props: IconProps) {
   );
 }
 
-/** PDF a Texto */
+/** PDF to text */
 export function DocumentTextIcon(props: IconProps) {
   return (
     <Base {...props}>
@@ -73,7 +73,7 @@ export function DocumentTextIcon(props: IconProps) {
   );
 }
 
-/** Privacidad (features) */
+/** Privacy (features) */
 export function LockIcon(props: IconProps) {
   return (
     <Base {...props}>
@@ -83,7 +83,7 @@ export function LockIcon(props: IconProps) {
   );
 }
 
-/** Velocidad (features) */
+/** Speed (features) */
 export function BoltIcon(props: IconProps) {
   return (
     <Base {...props}>
@@ -92,7 +92,7 @@ export function BoltIcon(props: IconProps) {
   );
 }
 
-/** Gratis (features) */
+/** Free (features) */
 export function TagIcon(props: IconProps) {
   return (
     <Base {...props}>
@@ -102,7 +102,7 @@ export function TagIcon(props: IconProps) {
   );
 }
 
-/** Confianza — check circular (hero) */
+/** Trust: circled check (hero) */
 export function ShieldCheckIcon(props: IconProps) {
   return (
     <Base {...props}>

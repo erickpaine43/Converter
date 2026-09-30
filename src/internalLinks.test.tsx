@@ -2,11 +2,15 @@ import { describe, expect, it } from 'vitest';
 import { renderToString } from 'react-dom/server';
 import { StaticRouter } from 'react-router-dom';
 import { AppRoutes } from './App';
-import { toolPath } from './lib/tools';
+import { GUIDE_SLUGS } from './content/guides';
+import { guidePath, pagePath, toolPath } from './lib/tools';
 
-// Netlify responde /about con 301 a /about/ (URL canónica, ver SeoHead.tsx):
-// todo link interno debe apuntar directo a la forma con barra final.
-const ROUTES = ['/', toolPath('merge-pdfs'), '/about/', '/contact/', '/privacy/', '/terms/', '/__not-found__'];
+// Netlify answers /contacto with a 301 to /contacto/ (canonical URL, see
+// SeoHead.tsx), so every internal link must point straight to the slashed form.
+const ROUTES = [
+  '/', toolPath('merge-pdfs'), pagePath('guides'), guidePath(GUIDE_SLUGS[0]),
+  pagePath('about'), pagePath('contact'), pagePath('privacy'), pagePath('terms'), '/__not-found__',
+];
 
 describe('Links internos con barra final', () => {
   for (const route of ROUTES) {

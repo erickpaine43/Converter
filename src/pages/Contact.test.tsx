@@ -1,13 +1,16 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
+import { MemoryRouter } from 'react-router-dom';
 import Contact from './Contact';
+
+const renderContact = () => render(<MemoryRouter><Contact /></MemoryRouter>);
 
 async function fillAndSubmit() {
   const user = userEvent.setup();
-  render(<Contact />);
+  renderContact();
   await user.type(screen.getByLabelText('Nombre'), 'Ana');
   await user.type(screen.getByLabelText('Email'), 'ana@example.com');
   await user.type(screen.getByLabelText('Mensaje'), 'Hola, encontré un problema.');
@@ -48,7 +51,7 @@ describe('Contact — envío real a Netlify Forms', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('No pudimos enviar tu mensaje');
     expect(screen.queryByText(/Mensaje enviado/)).toBeNull();
     expect(screen.getByLabelText('Mensaje')).toHaveValue('Hola, encontré un problema.');
-    expect(screen.getByRole('link', { name: 'e3522e@gmail.com' }).getAttribute('href')).toMatch(/^mailto:/);
+    expect(within(screen.getByRole('alert')).getByRole('link', { name: 'e3522e@gmail.com' }).getAttribute('href')).toMatch(/^mailto:/);
   });
 
   it('error de red: muestra error y no éxito', async () => {
@@ -68,7 +71,7 @@ describe('Contact — envío real a Netlify Forms', () => {
     expect(staticForm.getAttribute('data-netlify')).toBe('true');
     expect(staticForm.getAttribute('netlify-honeypot')).toBe('bot-field');
 
-    render(<Contact />);
+    renderContact();
     const reactForm = document.querySelector('form[name="contact"]')!;
     const names = (form: Element) =>
       [...form.querySelectorAll('input, textarea')].map(el => el.getAttribute('name')).sort();

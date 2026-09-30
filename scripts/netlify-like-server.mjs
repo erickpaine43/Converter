@@ -1,11 +1,11 @@
-// Servidor mínimo SOLO para verificación local: replica lo que hace Netlify con
-// este dist/ y netlify.toml. No se usa en producción.
-//  - las [[redirects]] se leen del netlify.toml real y se aplican en orden: la
-//    primera que matchea gana; sin `force` se saltean si existe un archivo
-//    estático en esa ruta (shadowing)
-//  - directorio con index.html pedido SIN barra final -> 301 a la URL con barra
-//    (pretty URLs de Netlify: /about -> /about/)
-//  - sin archivo ni regla -> 404
+// Minimal server for local checks ONLY: mimics what Netlify does with this
+// dist/ and netlify.toml. Not used in production.
+//  - [[redirects]] are read from the real netlify.toml and applied in order: the
+//    first match wins; without `force` they're skipped if a static file exists
+//    at that path (shadowing)
+//  - a directory with index.html requested WITHOUT trailing slash -> 301 to the
+//    slashed URL (Netlify pretty URLs: /contacto -> /contacto/)
+//  - no file and no rule -> 404
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import path from 'node:path';

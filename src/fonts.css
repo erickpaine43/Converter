@@ -1,10 +1,10 @@
 /*
- * Fuentes self-hosted (antes: CSS de fonts.googleapis.com + archivos de fonts.gstatic.com).
- * Son las mismas que servía Google Fonts: archivos variables, uno por familia y
- * subset, así que cada @font-face cubre un rango de pesos. Solo latin y latin-ext
- * (el sitio es en español; el navegador baja latin-ext solo si aparece algún
- * caracter de ese rango). Vite les agrega hash y van a /assets/ (caché immutable).
- * Licencia: SIL Open Font License 1.1 — ver src/assets/fonts/LICENSE.md.
+ * Self-hosted fonts (previously CSS from fonts.googleapis.com + files from fonts.gstatic.com).
+ * Same files Google Fonts served: variable fonts, one per family and subset, so
+ * each @font-face covers a weight range. Only latin and latin-ext (the site is
+ * in Spanish; browsers only download latin-ext if a character in that range
+ * shows up). Vite hashes them into /assets/ (immutable cache).
+ * License: SIL Open Font License 1.1 — see src/assets/fonts/LICENSE.md.
  */
 
 /* IBM Plex Sans — latin-ext */

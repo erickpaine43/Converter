@@ -40,7 +40,7 @@ export async function convertImagesToPdf(
     const [w, h] = getPageDimensions(pageSize, orientation, image.width, image.height);
     const page = pdfDoc.addPage([w, h]);
 
-    // escalar imagen para que quepa en la página
+    // scale the image to fit the page
     const scale = Math.min(w / image.width, h / image.height);
     const drawW = image.width * scale;
     const drawH = image.height * scale;

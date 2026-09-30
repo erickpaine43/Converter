@@ -1,29 +1,37 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { COOKIE_ANSWERED_CLASS, setCookieConsent } from '../lib/cookieConsent';
-import { useCookieConsent } from '../lib/useCookieConsent';
+import { pagePath } from '../lib/tools';
+import { useConsentSource, useCookieConsent } from '../lib/useCookieConsent';
 
-// Se pre-renderiza visible ('pending' en server e hidratación): así se pinta junto
-// con el resto de la página en vez de aparecer recién tras hidratar (lo que lo
-// volvía el elemento LCP en algunas páginas). A quien ya respondió se lo oculta el
-// script inline de index.html antes del primer paint, y React lo desmonta al leer
-// localStorage.
+// Pre-rendered visible ('pending' on the server and during hydration) so it's
+// painted along with the rest of the page instead of appearing after hydration
+// (which made it the LCP element on some pages). For visitors who already
+// answered, the inline script in index.html hides it before first paint, and
+// React unmounts it once it reads localStorage.
+//
+// With AdSense configured (VITE_ADSENSE_CLIENT) it isn't pre-rendered: we first
+// wait to find out whether Google's CMP applies to the visitor (EEA, UK and
+// Switzerland), and only if not does this banner show up (see lib/cookieConsent.ts).
 export default function CookieBanner() {
   const consent = useCookieConsent();
+  const source = useConsentSource();
 
-  // Sin respuesta guardada (p. ej. tras "Preferencias de cookies" en el footer):
-  // saca la clase del script inline para que el banner vuelva a verse.
+  // No stored answer (e.g. after "Preferencias de cookies" in the footer):
+  // remove the inline script's class so the banner is visible again.
   useEffect(() => {
-    if (consent === null) document.documentElement.classList.remove(COOKIE_ANSWERED_CLASS);
-  }, [consent]);
+    if (source === 'banner' && consent === null) document.documentElement.classList.remove(COOKIE_ANSWERED_CLASS);
+  }, [source, consent]);
 
+  if (source !== 'banner') return null;
   if (consent === 'accepted' || consent === 'rejected') return null;
 
   return (
     <div className="cookie-banner" role="region" aria-label="Aviso de cookies">
       <p>
         Usamos cookies de análisis (Google Analytics) para entender de forma agregada cómo se usa
-        el sitio. Solo se activan si las aceptas. <Link to="/privacy/">Más información</Link>.
+        el sitio y, cuando se muestran anuncios, cookies de publicidad de Google. Solo se activan
+        si las aceptas. <Link to={pagePath('privacy')}>Más información</Link>.
       </p>
       <div className="cookie-banner-actions">
         <button type="button" className="btn btn-secondary" onClick={() => setCookieConsent('rejected')}>

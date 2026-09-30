@@ -8,7 +8,7 @@ import HtmlToPdf from './HtmlToPdf';
 import { matchesAccept } from '../../lib/useFileDrop';
 import { makePdfFile, makePngFile, toFile } from '../../test/fixtures';
 
-// jsdom no implementa DataTransfer: alcanza con un objeto con types/files.
+// jsdom doesn't implement DataTransfer; an object with types/files is enough.
 function dataTransfer(files: File[]) {
   return { types: ['Files'], files, dropEffect: 'none' };
 }

@@ -1,12 +1,14 @@
-# Fuentes
+# Fonts
 
-Archivos `.woff2` descargados de Google Fonts (subsets latin y latin-ext, versiones
-variables) para servirlos desde el propio sitio. Los `@font-face` están en `src/fonts.css`.
+`.woff2` files downloaded from Google Fonts (latin and latin-ext subsets, variable
+versions) so they can be served from the site itself. The `@font-face` rules live in
+`src/fonts.css`.
 
-| Familia | Autor | Licencia |
+| Family | Author | License |
 |---|---|---|
 | IBM Plex Sans | IBM Corp. | [SIL Open Font License 1.1](https://openfontlicense.org) |
 | Source Serif 4 | Adobe | [SIL Open Font License 1.1](https://openfontlicense.org) |
 
-La OFL permite usar, incrustar y redistribuir estas fuentes (también en sitios
-comerciales) siempre que no se vendan por sí solas y se conserve este aviso de licencia.
+The OFL allows using, embedding and redistributing these fonts (including on
+commercial sites) as long as they aren't sold on their own and this license notice
+is kept.

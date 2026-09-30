@@ -18,7 +18,7 @@ export default function PdfToImages() {
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
 
-  // Flujo común del input y del drag & drop. Devuelve false si se rechazó.
+  // Shared flow for the file input and drag & drop. Returns false if rejected.
   const selectFile = (f: File | null): boolean => {
     if (f) {
       const validationError = validateFiles([f]);

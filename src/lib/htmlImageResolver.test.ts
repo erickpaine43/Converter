@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { resolveHtmlImages } from './htmlImageResolver';
 
-// jsdom no ejecuta carga real de recursos (setear img.src no dispara load/error
-// para una URL http real), así que para probar los caminos de éxito/fallo del
-// precargador reemplazamos window.Image por una versión que dispara el evento
-// que le pidamos de forma inmediata (microtask), en vez de depender de red real
-// o de esperar el timeout real de 5s.
+// jsdom doesn't actually load resources (setting img.src never fires load/error
+// for a real http URL), so to test the preloader's success/failure paths
+// window.Image is replaced with a version that fires whichever event we ask for
+// right away (in a microtask), instead of relying on the network or waiting for
+// the real 5s timeout.
 class ImmediateImage {
   onload: (() => void) | null = null;
   onerror: (() => void) | null = null;
@@ -21,7 +21,7 @@ class ImmediateImage {
 class HangingImage {
   onload: (() => void) | null = null;
   onerror: (() => void) | null = null;
-  set src(_value: string) { /* nunca dispara load ni error: fuerza el timeout */ }
+  set src(_value: string) { /* never fires load or error: forces the timeout */ }
 }
 
 function makeContainer(html: string): HTMLDivElement {

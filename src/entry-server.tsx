@@ -1,16 +1,17 @@
-/* eslint-disable react-refresh/only-export-components -- entrada SSR del build (scripts/prerender.mjs), nunca pasa por Fast Refresh */
+/* eslint-disable react-refresh/only-export-components -- build-time SSR entry (scripts/prerender.mjs), never goes through Fast Refresh */
 import { renderToString } from 'react-dom/server';
 import { StaticRouter } from 'react-router-dom';
 import { AppRoutes } from './App';
 
-// scripts/prerender.mjs toma de acá las rutas (única fuente: lib/tools.ts) y la
-// URL base para generar dist/sitemap.xml.
-export { PRERENDER_ROUTES, TOOL_SLUGS } from './lib/tools';
+// scripts/prerender.mjs takes the routes (single source: lib/tools.ts) and the
+// base URL from here to generate dist/sitemap.xml.
+export { PRERENDER_ROUTES, TOOL_SLUGS, PAGE_SLUGS } from './lib/tools';
+export { GUIDE_FILES } from './content/guides';
 export { canonicalUrl } from './lib/site';
 
-// React 19 hoistea <title>/<meta>/<link> renderizados en cualquier punto del
-// árbol al inicio del string de salida — por eso alcanza con renderToString
-// plano, sin ningún provider de metadata server-side.
+// React 19 hoists <title>/<meta>/<link> rendered anywhere in the tree to the
+// start of the output string, so plain renderToString is enough, with no
+// server-side metadata provider.
 export function render(url: string): string {
   return renderToString(
     <StaticRouter location={url}>

@@ -34,7 +34,7 @@ describe('Bloque 1: mergePdfs — entradas inválidas/maliciosas', () => {
       expect.unreachable('debería haber rechazado');
     } catch (err) {
       const friendly = toFriendlyErrorMessage(err);
-      expect(friendly).not.toMatch(/at \S+\.js:\d+/); // sin stack trace
+      expect(friendly).not.toMatch(/at \S+\.js:\d+/); // no stack trace
       expect(friendly.length).toBeGreaterThan(0);
     }
   });

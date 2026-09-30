@@ -43,8 +43,8 @@ describe('Bloque 3: ImagesToPdf — flujo de usuario', () => {
     const user = userEvent.setup();
     const { container } = render(<ImagesToPdf />);
 
-    // pasa el filtro accept="image/jpeg,image/png" del input (mime correcto),
-    // pero el contenido real no es un JPEG válido -> debe fallar en el converter, no trabarse.
+    // passes the input's accept="image/jpeg,image/png" filter (correct mime type),
+    // but the content isn't a valid JPEG -> it must fail in the converter, not hang.
     const badFile = toFile('esto no es un jpeg real', 'foto.jpg', 'image/jpeg');
     await user.upload(getFileInput(container), [badFile]);
     expect(screen.getByText('foto.jpg')).toBeInTheDocument();
@@ -67,7 +67,7 @@ describe('Bloque 3: ImagesToPdf — flujo de usuario', () => {
 
     const callsBeforeUnmount = revokeSpy.mock.calls.length;
     expect(() => unmount()).not.toThrow();
-    // al desmontar se revoca al menos el preview de la imagen y la URL de descarga
+    // on unmount at least the image preview and the download URL are revoked
     await waitFor(() => expect(revokeSpy.mock.calls.length).toBeGreaterThan(callsBeforeUnmount));
     revokeSpy.mockRestore();
   });

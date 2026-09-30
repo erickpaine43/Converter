@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, type DragEvent } from 'react';
 
 interface UseFileDropOptions {
-  /** Recibe los archivos soltados; deben pasar por el mismo flujo que el <input type="file">. */
+  /** Receives the dropped files; they must go through the same flow as the <input type="file">. */
   onFiles: (files: File[]) => void;
-  /** Se llama en vez de onFiles cuando lo soltado no se puede aceptar. */
+  /** Called instead of onFiles when the dropped items can't be accepted. */
   onReject: (message: string) => void;
-  /** Mismo valor que el `accept` del input: el navegador NO lo aplica al soltar, así que se revisa acá. */
+  /** Same value as the input's `accept`: browsers do NOT enforce it on drop, so it's checked here. */
   accept?: string;
   multiple?: boolean;
 }
@@ -25,15 +25,15 @@ export function matchesAccept(file: File, accept: string): boolean {
 }
 
 /**
- * Drag & drop real para las zonas .file-drop. Sin esto, soltar un archivo hace
- * que el navegador lo abra y el usuario se va del sitio perdiendo lo cargado.
- * Mientras el hook está montado también se bloquea el drop en el resto de la
- * página, por si el archivo cae apenas fuera de la zona.
+ * Real drag & drop for .file-drop zones. Without it, dropping a file makes the
+ * browser open it and the user leaves the site, losing whatever was loaded.
+ * While the hook is mounted, drops on the rest of the page are blocked too, in
+ * case the file lands just outside the zone.
  */
 export function useFileDrop({ onFiles, onReject, accept, multiple = false }: UseFileDropOptions) {
   const [isDragging, setIsDragging] = useState(false);
-  // dragenter/dragleave se disparan también al pasar por cada hijo del label:
-  // un contador evita que el resaltado parpadee.
+  // dragenter/dragleave also fire when moving over each child of the label, so a
+  // counter keeps the highlight from flickering.
   const depthRef = useRef(0);
 
   useEffect(() => {
@@ -68,7 +68,7 @@ export function useFileDrop({ onFiles, onReject, accept, multiple = false }: Use
     onDragOver: (e: DragEvent<HTMLElement>) => {
       if (!hasFiles(e)) return;
       e.preventDefault();
-      // stopPropagation: que el listener de window no pise el dropEffect con 'none'
+      // stopPropagation: keep the window listener from overriding dropEffect with 'none'
       e.stopPropagation();
       e.dataTransfer.dropEffect = 'copy';
     },

@@ -7,7 +7,7 @@ export function toFile(bytes: Uint8Array | string, name: string, type: string): 
 }
 
 interface MakePdfOptions {
-  pageTexts?: string[]; // un elemento por página; si se omite, la página queda en blanco
+  pageTexts?: string[]; // one entry per page; if omitted, the page is blank
   pageSize?: [number, number];
 }
 
@@ -36,10 +36,10 @@ export function truncatePdf(bytes: Uint8Array): Uint8Array {
   return bytes.slice(0, Math.floor(bytes.length / 2));
 }
 
-// pdfjs-dist (como la mayoría de los lectores PDF) escanea buscando "%PDF-" en vez
-// de exigirlo estrictamente en el byte 0, así que dañar solo el header no alcanza
-// para forzar un error real de parseo. Corrompemos en cambio el tramo final del
-// archivo, donde vive la tabla xref/trailer que pdfjs sí necesita para poder leerlo.
+// pdfjs-dist (like most PDF readers) scans for "%PDF-" instead of strictly
+// requiring it at byte 0, so damaging only the header isn't enough to force a
+// real parse error. Instead we corrupt the end of the file, where the
+// xref/trailer table that pdfjs does need lives.
 export function corruptPdfTail(bytes: Uint8Array): Uint8Array {
   const copy = new Uint8Array(bytes);
   const tailStart = Math.floor(copy.length * 0.7);
@@ -47,11 +47,11 @@ export function corruptPdfTail(bytes: Uint8Array): Uint8Array {
   return copy;
 }
 
-// PNG 1x1 real (fucsia), suficiente para pdf-lib.embedPng.
+// Real 1x1 PNG (magenta), enough for pdf-lib.embedPng.
 const PNG_1X1_BASE64 =
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
 
-// JPEG 1x1 real (blanco), suficiente para pdf-lib.embedJpg.
+// Real 1x1 JPEG (white), enough for pdf-lib.embedJpg.
 const JPEG_1X1_BASE64 =
   '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AVN//2Q==';
 
@@ -70,8 +70,8 @@ export function makeJpegFile(name = 'image.jpg'): File {
   return toFile(base64ToBytes(JPEG_1X1_BASE64), name, 'image/jpeg');
 }
 
-// --- Encoder PNG mínimo (sin dependencias), para poder generar imágenes de un
-// tamaño exacto y así verificar orden/dimensiones reales en los tests de salida. ---
+// --- Minimal PNG encoder (no dependencies), to generate images of an exact
+// size and check real order/dimensions in the output tests. ---
 
 const CRC_TABLE = (() => {
   const table: number[] = [];
@@ -103,7 +103,7 @@ function pngChunk(type: string, data: Uint8Array): Uint8Array {
   return out;
 }
 
-/** Genera un PNG RGB de color sólido, real y válido, del tamaño exacto pedido. */
+/** Generates a real, valid solid-color RGB PNG of exactly the requested size. */
 export function makeSolidPngBytes(width: number, height: number, rgbColor: [number, number, number] = [255, 0, 255]): Uint8Array {
   const signature = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
 
@@ -111,7 +111,7 @@ export function makeSolidPngBytes(width: number, height: number, rgbColor: [numb
   const ihdrView = new DataView(ihdrData.buffer);
   ihdrView.setUint32(0, width);
   ihdrView.setUint32(4, height);
-  ihdrData[8] = 8; // profundidad de bits
+  ihdrData[8] = 8; // bit depth
   ihdrData[9] = 2; // color type: RGB
   const ihdr = pngChunk('IHDR', ihdrData);
 
@@ -119,7 +119,7 @@ export function makeSolidPngBytes(width: number, height: number, rgbColor: [numb
   const raw = new Uint8Array((rowBytes + 1) * height);
   for (let y = 0; y < height; y++) {
     const rowStart = y * (rowBytes + 1);
-    raw[rowStart] = 0; // sin filtro
+    raw[rowStart] = 0; // no filter
     for (let x = 0; x < width; x++) {
       raw[rowStart + 1 + x * 3] = rgbColor[0];
       raw[rowStart + 1 + x * 3 + 1] = rgbColor[1];

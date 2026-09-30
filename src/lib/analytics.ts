@@ -1,7 +1,7 @@
 import ReactGA from 'react-ga4';
 
-// Único lugar donde vive el Measurement ID. Se puede sobreescribir por entorno
-// (VITE_GA_MEASUREMENT_ID en .env / variables de Netlify) sin tocar código.
+// The only place the Measurement ID lives. Can be overridden per environment
+// (VITE_GA_MEASUREMENT_ID in .env / Netlify env vars) without code changes.
 export const GA_MEASUREMENT_ID: string =
   import.meta.env.VITE_GA_MEASUREMENT_ID || 'G-R0SHPW5E39';
 
@@ -11,12 +11,12 @@ export function isGAInitialized(): boolean {
   return initialized;
 }
 
-// Solo debe llamarse con consentimiento de cookies (ver useAnalytics).
+// Must only be called with cookie consent (see useAnalytics).
 export function initGA(): void {
   if (initialized) return;
   ReactGA.initialize(GA_MEASUREMENT_ID, {
-    // Los page_view los manda trackPageView en cada cambio de ruta; sin esto el
-    // primero se contaría dos veces (uno automático del config + el nuestro).
+    // page_views are sent by trackPageView on every route change; without this
+    // the first one would be counted twice (the config's automatic one + ours).
     gtagOptions: { send_page_view: false },
   });
   initialized = true;
@@ -27,7 +27,7 @@ export function trackPageView(path: string): void {
   ReactGA.send({ hitType: 'pageview', page: path });
 }
 
-// Solo para tests: vuelve al estado "nunca inicializado".
+// Tests only: resets to the "never initialized" state.
 export function resetGAForTests(): void {
   initialized = false;
 }

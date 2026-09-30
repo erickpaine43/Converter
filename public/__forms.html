@@ -1,11 +1,10 @@
 <!doctype html>
 <!--
-  Archivo estático SOLO para que Netlify detecte el formulario "contact" en
-  build time (Netlify parsea el HTML del directorio publicado buscando
-  forms con el atributo data-netlify). El formulario visible vive en
-  src/pages/Contact.tsx y envía por fetch a esta misma ruta. Si agregás o
-  renombrás campos allá, reflejalos acá también: Netlify descarta los campos
-  que no estén declarados en este form.
+  Static file whose ONLY purpose is letting Netlify detect the "contact" form
+  at build time (Netlify parses the published HTML looking for forms with the
+  data-netlify attribute). The visible form lives in src/pages/Contact.tsx and
+  submits via fetch to this same path. Fields added or renamed there must be
+  mirrored here: Netlify drops any field not declared in this form.
 -->
 <html lang="es">
   <head>

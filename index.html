@@ -5,12 +5,17 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PDF Converter — Herramientas PDF gratuitas online</title>
-    <!-- Fuentes self-hosted en src/fonts.css (font-display: swap). Sin <link rel="preload">
-         a propósito: medido con Slow 4G, precargar los ~168 KB de woff2 compite con el
-         CSS/JS y retrasa el FCP/LCP ~300 ms sin mejorar el CLS. -->
-    <!-- El banner de cookies viene pre-renderizado: si ya hay respuesta guardada se
-         oculta antes del primer paint (clave y clase: src/lib/cookieConsent.ts). -->
+    <!-- Self-hosted fonts in src/fonts.css (font-display: swap). No <link rel="preload">
+         on purpose: measured on Slow 4G, preloading the ~168 KB of woff2 competes with
+         CSS/JS and delays FCP/LCP by ~300 ms without improving CLS. -->
+    <!-- The cookie banner is pre-rendered: if an answer is already stored, it's hidden
+         before first paint (key and class: src/lib/cookieConsent.ts). -->
     <script>try{var c=localStorage.getItem('cookie-consent');if(c==='accepted'||c==='rejected')document.documentElement.classList.add('cookie-consent-answered')}catch(e){}</script>
+    <!-- Google Consent Mode v2: everything denied by default, before any Google tag.
+         Updated by our own banner (src/lib/consentMode.ts) or Google's CMP
+         (src/lib/cookieConsent.ts). -->
+    <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('consent','default',{ad_storage:'denied',ad_user_data:'denied',ad_personalization:'denied',analytics_storage:'denied',wait_for_update:500});</script>
+    <!--adsense-->
   </head>
   <body>
     <div id="root"></div>

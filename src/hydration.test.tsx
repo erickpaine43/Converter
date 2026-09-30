@@ -8,10 +8,10 @@ import { BrowserRouter } from 'react-router-dom';
 import { AppRoutes } from './App';
 import { PRERENDER_ROUTES } from './lib/tools';
 
-// Regresión para el pre-rendering: hidrata contra el HTML que realmente
-// produce entry-server.tsx (mismo AppRoutes, mismo StaticRouter) y falla si
-// React reporta cualquier mismatch de hidratación (texto distinto, atributos
-// distintos, o un boundary de Suspense que no calza entre server y cliente).
+// Pre-rendering regression test: hydrates against the HTML that
+// entry-server.tsx actually produces (same AppRoutes, same StaticRouter) and
+// fails if React reports any hydration mismatch (different text, different
+// attributes, or a Suspense boundary that doesn't match between server and client).
 const ROUTES = PRERENDER_ROUTES;
 
 let root: Root | null = null;
@@ -25,28 +25,28 @@ afterEach(() => {
   window.history.pushState({}, '', '/');
 });
 
-// Netlify sirve dist/404.html (pre-renderizado desde NOT_FOUND_ROUTE) para
-// cualquier URL sin archivo propio: el cliente hidrata ese HTML en la URL real.
+// Netlify serves dist/404.html (pre-rendered from NOT_FOUND_ROUTE) for any URL
+// without its own file; the client hydrates that HTML at the real URL.
 const NOT_FOUND_ROUTE = '/__not-found__';
 const CASES: { route: string; serverRoute: string }[] = [
   ...ROUTES.map(route => ({ route, serverRoute: route })),
   { route: '/pagina-que-no-existe', serverRoute: NOT_FOUND_ROUTE },
   { route: '/converter/noexiste', serverRoute: NOT_FOUND_ROUTE },
-  // URL vieja en inglés: en producción Netlify la redirige con 301 antes de llegar acá
+  // Old English URL: in production Netlify 301-redirects it before it gets here
   { route: '/converter/merge-pdfs', serverRoute: NOT_FOUND_ROUTE },
 ];
 
 describe('Hidratación SSR -> cliente por ruta', () => {
   for (const { route, serverRoute } of CASES) {
     it(`hidrata ${route} sin warnings de mismatch`, async () => {
-      // 1. Render "servidor": la misma función que usa scripts/prerender.mjs.
+      // 1. "Server" render: the same function scripts/prerender.mjs uses.
       const serverHtml = renderToString(
         <StaticRouter location={serverRoute}>
           <AppRoutes />
         </StaticRouter>
       );
 
-      // 2. Monta ese HTML crudo en el DOM, tal como lo entrega dist/<ruta>/index.html.
+      // 2. Mount that raw HTML in the DOM, exactly as dist/<route>/index.html serves it.
       container = document.createElement('div');
       container.innerHTML = serverHtml;
       document.body.appendChild(container);
@@ -55,7 +55,7 @@ describe('Hidratación SSR -> cliente por ruta', () => {
       const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
       const recoverableErrors: unknown[] = [];
 
-      // 3. Hidrata con el árbol real del cliente (StrictMode + BrowserRouter, como main.tsx).
+      // 3. Hydrate with the real client tree (StrictMode + BrowserRouter, like main.tsx).
       root = hydrateRoot(
         container,
         <StrictMode>
@@ -68,8 +68,8 @@ describe('Hidratación SSR -> cliente por ruta', () => {
         }
       );
 
-      // En las herramientas, espera a que el widget lazy() cargue y reemplace el
-      // placeholder "Cargando herramienta…" que vino en el HTML pre-renderizado.
+      // On tool pages, wait for the lazy() widget to load and replace the
+      // "Cargando herramienta…" placeholder from the pre-rendered HTML.
       await waitFor(() => expect(container!.querySelector('.converter-loading')).toBeNull(), { timeout: 5000 });
 
       const hydrationWarnings = consoleError.mock.calls.filter(args =>

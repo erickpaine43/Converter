@@ -1,7 +1,7 @@
-/** Error con mensaje ya pensado para mostrarse tal cual al usuario. */
+/** Error whose message is meant to be shown to the user as is. */
 export class AppError extends Error {}
 
-const GENERIC_MESSAGE = 'Ocurrió un error al procesar el archivo. Probá de nuevo o con otro archivo.';
+const GENERIC_MESSAGE = 'Ocurrió un error al procesar el archivo. Inténtalo de nuevo o prueba con otro archivo.';
 
 export function toFriendlyErrorMessage(err: unknown): string {
   if (err instanceof AppError) return err.message;
@@ -11,7 +11,7 @@ export function toFriendlyErrorMessage(err: unknown): string {
     const msg = err.message;
 
     if (name === 'PasswordException' || name === 'EncryptedPDFError' || /encrypted|password/i.test(msg)) {
-      return 'Este PDF está protegido con contraseña. Quitá la protección antes de subirlo.';
+      return 'Este PDF está protegido con contraseña. Quita la protección antes de subirlo.';
     }
 
     if (name === 'InvalidPDFException' || /invalid pdf structure|not a valid pdf|corrupt/i.test(msg)) {

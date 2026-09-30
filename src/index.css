@@ -17,7 +17,7 @@
   --color-error: #B3423A;
   --color-error-tint: #FBEEEC;
 
-  /* Tipografía */
+  /* Typography */
   --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
   --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
@@ -30,7 +30,7 @@
   --font-size-2xl: 2.25rem;
   --font-size-3xl: 3rem;
 
-  /* Espaciado */
+  /* Spacing */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -42,12 +42,12 @@
   --space-12: 3rem;
   --space-16: 4rem;
 
-  /* Forma */
+  /* Shape */
   --radius-sm: 6px;
   --radius: 8px;
   --content-width: 1120px;
 
-  /* Sombra: solo para elevación real (hover/foco), nunca decorativa por defecto */
+  /* Shadow: only for real elevation (hover/focus), never decorative by default */
   --shadow-hover: 0 8px 24px -6px rgba(18, 33, 63, 0.18);
 }
 
@@ -104,6 +104,97 @@ a { color: inherit; }
 
 .wordmark-accent { color: var(--color-brass); }
 
+/* Main navigation: inline from 961px up; below that it opens with the "Menú" button. */
+.header { position: relative; gap: var(--space-6); }
+.nav-toggle {
+  display: none;
+  margin-left: auto;
+  background: none;
+  border: 1px solid rgba(250, 249, 245, 0.35);
+  border-radius: var(--radius-sm);
+  color: var(--color-paper);
+  font: 600 var(--font-size-sm) var(--font-sans);
+  padding: 0.4rem var(--space-3);
+  cursor: pointer;
+}
+.site-nav { margin-left: auto; }
+.site-nav-list { list-style: none; display: flex; align-items: center; gap: var(--space-5); }
+.site-nav-link {
+  color: rgba(250, 249, 245, 0.85);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  font-family: var(--font-sans);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.site-nav-link:hover { color: var(--color-paper); }
+.site-nav-tools { position: relative; }
+.site-nav-submenu {
+  list-style: none;
+  position: absolute;
+  top: calc(100% + var(--space-3));
+  left: 0;
+  z-index: 50;
+  min-width: 200px;
+  padding: var(--space-2) 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-hairline);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-hover);
+}
+.site-nav-submenu[hidden] { display: none; }
+.site-nav-submenu a {
+  display: block;
+  padding: var(--space-2) var(--space-4);
+  color: var(--color-ink);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+}
+.site-nav-submenu a:hover { background: var(--color-paper); }
+.site-nav-submenu :focus-visible { outline-color: var(--color-ink); }
+
+@media (max-width: 960px) {
+  .nav-toggle { display: inline-block; }
+  .site-nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 60;
+    background: var(--color-ink);
+    border-bottom: 2px solid var(--color-brass);
+    padding: var(--space-2) var(--space-6) var(--space-4);
+  }
+  .site-nav--open { display: block; }
+  .site-nav-list { flex-direction: column; align-items: stretch; gap: 0; }
+  .site-nav-list > li > .site-nav-link { display: block; width: 100%; text-align: left; padding: var(--space-3) 0; font-size: var(--font-size-base); }
+  .site-nav-submenu { position: static; box-shadow: none; margin-bottom: var(--space-2); }
+}
+
+/* ============ Guides ============ */
+.breadcrumb { font-size: var(--font-size-sm); color: var(--color-slate); margin-bottom: var(--space-4); }
+.breadcrumb a { color: var(--color-slate); }
+.breadcrumb a:hover { color: var(--color-ink); }
+.guide-article { margin-top: 0; }
+.guide-meta { font-size: var(--font-size-sm); margin-bottom: var(--space-6) !important; }
+.page-lead { color: var(--color-slate); font-size: var(--font-size-md); line-height: 1.6; max-width: 720px; margin-bottom: var(--space-8); }
+.guides-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-4);
+}
+.info-section h3 { font-size: var(--font-size-md); margin: var(--space-5) 0 var(--space-2); }
+.info-section a { color: var(--color-ink); }
+.legal-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); margin-bottom: var(--space-4); color: var(--color-slate); }
+.legal-table th, .legal-table td { border: 1px solid var(--color-hairline); padding: var(--space-2) var(--space-3); text-align: left; vertical-align: top; }
+.legal-table th { color: var(--color-ink); background: var(--color-paper); }
+.table-scroll { overflow-x: auto; }
+
 /* ============ Home / Hero ============ */
 .home {
   max-width: var(--content-width);
@@ -144,8 +235,8 @@ a { color: inherit; }
 }
 
 .hero-trust svg { color: var(--color-success); flex-shrink: 0; margin-top: 0.15em; }
-/* min-width:0 vence el min-width:auto implícito de los flex items, para que el
-   texto pueda achicarse y hacer wrap en vez de forzar overflow horizontal */
+/* min-width:0 overrides the implicit min-width:auto of flex items, so the text
+   can shrink and wrap instead of forcing horizontal overflow */
 .hero-trust span { min-width: 0; }
 
 /* Generic page title (about/contact/privacy/etc, reuses .home layout) */
@@ -165,7 +256,7 @@ a { color: inherit; }
   font-size: var(--font-size-md);
 }
 
-/* ============ Tools grid (asimétrico) ============ */
+/* ============ Tools grid (asymmetric) ============ */
 .tools-grid {
   display: grid;
   grid-template-columns: 1.3fr 1fr 1fr;
@@ -281,19 +372,19 @@ a { color: inherit; }
   font-size: var(--font-size-sm);
   padding: var(--space-6) 0;
 }
-/* Altura inicial de cada widget (sin archivos cargados), medida en el navegador:
-   el contenedor la reserva desde el HTML pre-renderizado para que el widget no
-   empuje el contenido de abajo al reemplazar al placeholder (CLS). Es el máximo
-   de cada rango de ancho (el texto de las opciones se parte en más líneas cuanto
-   más angosto): si el widget queda más bajo sobra algo de espacio, pero nada se
-   mueve. Si cambia el marcado inicial de un widget, re-medir. */
+/* Initial height of each widget (no files loaded), measured in the browser.
+   The container reserves it from the pre-rendered HTML so the widget doesn't
+   push the content below when it replaces the placeholder (CLS). Each value is
+   the maximum for its width range (option labels wrap onto more lines on
+   narrower screens): if the widget ends up shorter there's some spare space,
+   but nothing moves. Re-measure if a widget's initial markup changes. */
 .converter-widget--merge-pdfs    { min-height: 267.8px; }
 .converter-widget--images-to-pdf { min-height: 267.8px; }
 .converter-widget--pdf-to-images { min-height: 352.8px; }
 .converter-widget--pdf-to-text   { min-height: 246.8px; }
 .converter-widget--html-to-pdf   { min-height: 453.2px; }
 
-/* ============ Mode toggle (subir archivo / pegar código) ============ */
+/* ============ Mode toggle (upload file / paste code) ============ */
 .mode-toggle {
   display: inline-flex;
   border: 1px solid var(--color-hairline);
@@ -335,7 +426,7 @@ a { color: inherit; }
 
 .file-drop:hover,
 .file-drop:focus-within { border-color: var(--color-brass); background: var(--color-brass-tint); }
-/* archivo arrastrándose encima: borde sólido y más grueso para que se note dónde va a caer */
+/* file being dragged over: thicker solid border so it's clear where it will drop */
 .file-drop--active {
   border: 2px solid var(--color-brass);
   padding: calc(var(--space-8) - 1px);
@@ -429,7 +520,7 @@ a { color: inherit; }
   flex-wrap: wrap;
 }
 
-/* ============ Progreso ============ */
+/* ============ Progress ============ */
 .progress {
   display: flex;
   align-items: center;
@@ -633,7 +724,7 @@ a { color: inherit; }
   margin-top: var(--space-2);
 }
 
-/* ============ Mensajes ============ */
+/* ============ Messages ============ */
 .msg-error {
   color: #7A2A24;
   background: var(--color-error-tint);
@@ -669,7 +760,7 @@ a { color: inherit; }
   margin-top: var(--space-5);
 }
 
-/* ============ Features (privacidad/velocidad/gratis) ============ */
+/* ============ Features (privacy/speed/free) ============ */
 .features-section {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -734,7 +825,7 @@ a { color: inherit; }
 .info-section ol.content-steps li { margin-bottom: var(--space-2); }
 .info-section p + ul { margin-bottom: var(--space-3); }
 
-/* ============ Otras herramientas (pie de cada herramienta) ============ */
+/* ============ Other tools (bottom of each tool page) ============ */
 .other-tools { margin-top: var(--space-10); }
 .other-tools-title { font-size: var(--font-size-lg); margin-bottom: var(--space-4); }
 .other-tools-list {
@@ -834,7 +925,7 @@ a { color: inherit; }
 .footer-tools { margin-bottom: var(--space-4); }
 .footer-tools a { color: var(--color-ink); font-weight: 500; }
 
-/* Acción (no navegación) con el mismo aspecto que los links del footer */
+/* Action (not navigation) styled like the footer links */
 .footer-link-button {
   background: none;
   border: none;
@@ -845,6 +936,16 @@ a { color: inherit; }
   color: var(--color-slate);
 }
 .footer-link-button:hover { color: var(--color-ink); }
+/* Inline action styled as a link (e.g. in the privacy policy) */
+.inline-link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--color-ink);
+  text-decoration: underline;
+  cursor: pointer;
+}
 .footer-copy { color: var(--color-slate); font-size: var(--font-size-xs); }
 
 /* ============ Responsive ============ */
@@ -874,7 +975,7 @@ a { color: inherit; }
   .converter-page { padding: var(--space-5) var(--space-4); }
   .converter-card { padding: var(--space-5); }
   .info-section { padding: var(--space-5); }
-  /* Máximos medidos entre 320 y 600px de ancho. */
+  /* Maximums measured between 320 and 600px wide. */
   .converter-widget--merge-pdfs    { min-height: 309.8px; }
   .converter-widget--images-to-pdf { min-height: 288.8px; }
   .converter-widget--pdf-to-images { min-height: 373.8px; }
@@ -905,6 +1006,6 @@ a { color: inherit; }
 }
 .cookie-banner p { flex: 1 1 320px; }
 .cookie-banner a { color: var(--color-ink); }
-/* Puesta por el script inline de index.html si ya hay respuesta guardada. */
+/* Set by the inline script in index.html when an answer is already stored. */
 .cookie-consent-answered .cookie-banner { display: none; }
 .cookie-banner-actions { display: flex; gap: var(--space-2); margin-left: auto; }

@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { TOOL_IDS, TOOL_LABELS, TOOL_SHORT_DESCS, toolPath, type ToolId } from '../lib/tools';
 
-// Enlazado interno al pie de cada herramienta: las otras 4, con links reales
-// (<a href>) que están en el HTML pre-renderizado.
+// Internal linking at the bottom of each tool page: the other 4 tools, as real
+// links (<a href>) in the pre-rendered HTML.
 export default function OtherTools({ current }: { current: ToolId }) {
   return (
     <nav className="other-tools" aria-labelledby="other-tools-title">

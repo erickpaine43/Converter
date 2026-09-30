@@ -7,12 +7,12 @@
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
 
-# URLs viejas de las herramientas (en inglés, bajo /converter/) -> slug en
-# español. 301 para conservar links externos e indexación previa. Van ANTES del
-# catch-all 404 (Netlify aplica la primera regla que matchea) y con force por si
-# quedara un HTML viejo en esa ruta. Se declaran con y sin barra final para no
-# depender de cómo normalice el path el motor de redirects.
-# Si se agrega una herramienta, sumarla acá y en src/lib/tools.ts (lo controla
+# Old tool URLs (English, under /converter/) -> Spanish slugs. 301 to keep
+# external links and existing indexing. They go BEFORE the 404 catch-all
+# (Netlify applies the first matching rule) and use force in case an old HTML
+# file is still at that path. Declared with and without trailing slash so we
+# don't depend on how the redirect engine normalizes paths.
+# New tools need an entry here and in src/lib/tools.ts (checked by
 # src/siteConfig.test.ts).
 [[redirects]]
   from = "/converter/merge-pdfs"
@@ -65,14 +65,59 @@
   status = 301
   force = true
 
-# Todas las rutas válidas están pre-renderizadas como <ruta>/index.html
-# (scripts/prerender.mjs), así que no hace falta el fallback SPA "/* -> /index.html
-# 200": devolvía 200 con el HTML de la Home para CUALQUIER URL (soft 404).
+# Old English site pages -> Spanish slugs (same approach as the tools: 301,
+# force, with and without trailing slash). Renamed pages need an entry here and
+# in LEGACY_PAGE_PATHS in src/lib/tools.ts (checked by siteConfig.test.ts).
+[[redirects]]
+  from = "/about"
+  to = "/sobre-nosotros/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/about/"
+  to = "/sobre-nosotros/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/contact"
+  to = "/contacto/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/contact/"
+  to = "/contacto/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/privacy"
+  to = "/privacidad/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/privacy/"
+  to = "/privacidad/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/terms"
+  to = "/terminos/"
+  status = 301
+  force = true
+[[redirects]]
+  from = "/terms/"
+  to = "/terminos/"
+  status = 301
+  force = true
+
+# Every valid route is pre-rendered as <route>/index.html (scripts/prerender.mjs),
+# so there's no need for the SPA fallback "/* -> /index.html 200", which returned
+# 200 with the Home HTML for ANY URL (soft 404).
 #
-# Sin `force`, Netlify sirve primero el archivo estático si existe (shadowing), y
-# solo si no hay archivo aplica esta regla: status 404 real con dist/404.html.
-# No se agregan reglas 200 explícitas por ruta a propósito: servirían /about con
-# 200 además de /about/, duplicando cada URL canónica (hoy /about -> 301 /about/).
+# Without `force`, Netlify serves the static file first if it exists (shadowing)
+# and only applies this rule when there's no file: a real 404 with dist/404.html.
+# Explicit per-route 200 rules are intentionally not added: they would serve
+# /contacto with 200 in addition to /contacto/, duplicating every canonical URL
+# (today /contacto -> 301 /contacto/).
 [[redirects]]
   from = "/*"
   to = "/404.html"

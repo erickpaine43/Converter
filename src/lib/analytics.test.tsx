@@ -18,7 +18,7 @@ function renderApp(path = '/') {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <AppRoutes />
-      <Link to="/about">ir-a-about</Link>
+      <Link to="/sobre-nosotros/">ir-a-about</Link>
     </MemoryRouter>
   );
 }
@@ -87,17 +87,17 @@ describe('GA + consentimiento de cookies', () => {
     expect(sendMock).toHaveBeenLastCalledWith({ hitType: 'pageview', page: '/' });
 
     await userEvent.click(screen.getByText('ir-a-about'));
-    expect(sendMock).toHaveBeenLastCalledWith({ hitType: 'pageview', page: '/about' });
+    expect(sendMock).toHaveBeenLastCalledWith({ hitType: 'pageview', page: '/sobre-nosotros/' });
     expect(initializeMock).toHaveBeenCalledTimes(1);
   });
 
   it('inicializa directo si ya había aceptado en una visita anterior', () => {
     localStorage.setItem(COOKIE_CONSENT_KEY, 'accepted');
-    renderApp('/privacy');
+    renderApp('/privacidad/');
 
     expect(screen.queryByRole('region', { name: /cookies/i })).not.toBeInTheDocument();
     expect(initializeMock).toHaveBeenCalledTimes(1);
-    expect(sendMock).toHaveBeenCalledWith({ hitType: 'pageview', page: '/privacy' });
+    expect(sendMock).toHaveBeenCalledWith({ hitType: 'pageview', page: '/privacidad/' });
   });
 
   it('"Preferencias de cookies" borra el consentimiento y vuelve a mostrar el banner sin recargar', async () => {
@@ -111,7 +111,7 @@ describe('GA + consentimiento de cookies', () => {
     expect(localStorage.getItem(COOKIE_CONSENT_KEY)).toBeNull();
     expect(screen.getByRole('region', { name: /cookies/i })).toBeInTheDocument();
 
-    // sin respuesta nueva, los cambios de ruta ya no se trackean
+    // without a new answer, route changes are no longer tracked
     await userEvent.click(screen.getByText('ir-a-about'));
     expect(sendMock).not.toHaveBeenCalled();
 

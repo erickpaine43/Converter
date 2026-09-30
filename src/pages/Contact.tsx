@@ -1,13 +1,15 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import SeoHead from '../components/SeoHead';
+import { CONTACT_EMAIL } from '../lib/site';
+import { pagePath } from '../lib/tools';
 
-// Netlify Forms: el formulario se registra en build time a partir de
-// public/__forms.html (el HTML prerenderizado de esta página no se usa para
-// detección). Se envía por fetch a esa ruta estática para no pasar por el
-// redirect SPA "/*" -> "/index.html" de netlify.toml.
+// Netlify Forms: the form is registered at build time from public/__forms.html
+// (this page's pre-rendered HTML isn't used for detection). It's submitted via
+// fetch to that static path, which exists as a file, so the POST is handled by
+// Netlify Forms instead of hitting the 404 catch-all in netlify.toml.
 const CONTACT_FORM_NAME = 'contact';
 const CONTACT_FORM_ENDPOINT = '/__forms.html';
-const CONTACT_EMAIL = 'e3522e@gmail.com';
 
 type Status = 'idle' | 'sending' | 'sent' | 'error';
 
@@ -46,12 +48,17 @@ export default function Contact() {
 
   return (
     <main className="home">
-      <SeoHead title="Contacto" description="Escríbenos para hacer preguntas, dejar sugerencias o reportar un problema con alguna de las herramientas de PDF Converter. Te responderemos a la brevedad." path="/contact" />
+      <SeoHead title="Contacto" description="Escríbenos para hacer preguntas, dejar sugerencias o reportar un problema con alguna de las herramientas de PDF Converter. Te responderemos a la brevedad." path={pagePath('contact')} />
       <div className="info-section" style={{ marginTop: '2rem', maxWidth: 560 }}>
         <h1 className="page-title" style={{ marginBottom: 'var(--space-2)' }}>Contacto</h1>
-        <p style={{ marginBottom: '1.5rem' }}>
+        <p style={{ marginBottom: '1rem' }}>
           ¿Tienes alguna pregunta, sugerencia o problema con alguna herramienta?
           Escríbenos y te responderemos a la brevedad.
+        </p>
+        <p style={{ marginBottom: '1.5rem' }}>
+          También puedes escribir directamente a <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
+          Usamos tus datos solo para responderte, como se explica en
+          la <Link to={pagePath('privacy')}>política de privacidad</Link>.
         </p>
 
         {status === 'sent' ? (

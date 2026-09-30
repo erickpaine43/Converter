@@ -2,12 +2,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import html2canvas from 'html2canvas';
 import { convertHtmlToPdf, planAutoCapture, planCapture, MAX_CANVAS_AREA, MAX_CANVAS_SIDE, MAX_PDF_PAGE_PT } from './htmlToPdf';
 
-// html2canvas y jsPDF son librerías de terceros; su render/generación de bytes de PDF
-// no es responsabilidad nuestra probar (y html2canvas ni siquiera corre de forma
-// realista en jsdom, sin layout real). Mockeamos ambas para poder validar en cambio
-// LA LÓGICA PROPIA de convertHtmlToPdf: mapeo de paperSize -> dimensiones/orientación,
-// captura por tramos (sin exceder los límites de canvas), paginación, progreso, y
-// que el contenido capturado efectivamente se pasa a addImage.
+// html2canvas and jsPDF are third-party libraries; testing their rendering and
+// PDF byte output isn't our job (and html2canvas can't even run realistically in
+// jsdom, which has no layout). Both are mocked so we can test OUR OWN logic in
+// convertHtmlToPdf: paperSize -> dimensions/orientation, chunked capture (never
+// exceeding canvas limits), pagination, progress, and that the captured content
+// actually reaches addImage.
 const addImageMock = vi.fn();
 const addPageMock = vi.fn();
 const saveMock = vi.fn();
@@ -23,10 +23,10 @@ vi.mock('jspdf', () => ({
 interface CaptureOptions { scale: number; x?: number; y?: number; width?: number; height?: number }
 
 vi.mock('html2canvas', () => ({
-  // se comporta como html2canvas real respecto del TAMAÑO: el canvas mide el
-  // recorte pedido (o el elemento entero si no hay recorte) multiplicado por scale.
-  // Es un canvas real (no un objeto plano): sliceCanvas() hace drawImage sobre esto,
-  // y vitest-canvas-mock necesita un HTMLCanvasElement de verdad para simularlo.
+  // Behaves like the real html2canvas as far as SIZE goes: the canvas is the
+  // requested crop (or the whole element if there's none) times scale.
+  // It's a real canvas (not a plain object): sliceCanvas() calls drawImage on it,
+  // and vitest-canvas-mock needs an actual HTMLCanvasElement to simulate that.
   default: vi.fn(async (el: HTMLElement, opts: CaptureOptions) => {
     const rect = el.getBoundingClientRect();
     const canvas = document.createElement('canvas');
@@ -38,7 +38,7 @@ vi.mock('html2canvas', () => ({
 
 const html2canvasMock = vi.mocked(html2canvas);
 
-/** jsdom no hace layout (getBoundingClientRect da 0x0): simulamos el tamaño renderizado. */
+/** jsdom has no layout (getBoundingClientRect returns 0x0), so we fake the rendered size. */
 function makeElement(width: number, height: number): HTMLElement {
   const el = document.createElement('div');
   el.getBoundingClientRect = () => ({ width, height, top: 0, left: 0, right: width, bottom: height, x: 0, y: 0, toJSON: () => ({}) });
@@ -46,9 +46,9 @@ function makeElement(width: number, height: number): HTMLElement {
 }
 
 /**
- * Elemento cuyo contenido lo desborda: el recuadro mide boxWidth x boxHeight
- * (con 1px de borde por lado) pero el contenido llega a scrollWidth x scrollHeight
- * (medidos desde el borde interno, como en un navegador real).
+ * Element whose content overflows it: the box is boxWidth x boxHeight (with a
+ * 1px border per side) but the content reaches scrollWidth x scrollHeight
+ * (measured from the inner edge, as in a real browser).
  */
 function makeOverflowingElement(boxWidth: number, boxHeight: number, scrollWidth: number, scrollHeight: number): HTMLElement {
   const el = makeElement(boxWidth, boxHeight);
@@ -95,7 +95,7 @@ describe('Bloque 2: convertHtmlToPdf — validación de salida', () => {
   it('paperSize "auto" usa las dimensiones reales del contenido capturado, en una sola página', async () => {
     const onProgress = vi.fn();
     await convertHtmlToPdf(makeElement(400, 300), 'auto', onProgress);
-    // 400x300 px CSS -> 300x225 pt (1 px CSS = 0.75 pt), capturado a scale 2
+    // 400x300 CSS px -> 300x225 pt (1 CSS px = 0.75 pt), captured at scale 2
     expect(lastJsPdfCtorArgs?.unit).toBe('pt');
     expect(lastJsPdfCtorArgs?.format).toEqual([300, 225]);
     expect(lastJsPdfCtorArgs?.orientation).toBe('landscape'); // 300 > 225
@@ -117,7 +117,7 @@ describe('Bloque 2: convertHtmlToPdf — paginación real (A4/Letter)', () => {
 
   it('contenido corto: una sola página, sin addPage() de más (no agrega páginas en blanco)', async () => {
     const onProgress = vi.fn();
-    await convertHtmlToPdf(makeElement(500, 200), 'A4', onProgress); // entra en una página A4 de sobra
+    await convertHtmlToPdf(makeElement(500, 200), 'A4', onProgress); // easily fits one A4 page
 
     expect(addPageMock).not.toHaveBeenCalled();
     expect(addImageMock).toHaveBeenCalledTimes(1);
@@ -126,31 +126,31 @@ describe('Bloque 2: convertHtmlToPdf — paginación real (A4/Letter)', () => {
   });
 
   it('contenido largo: se recorta en varias franjas, una página por franja, con addPage() entre cada una', async () => {
-    // A4 con 500px CSS de ancho: una página mide floor(500*842/595) = 707px CSS
-    // -> con 3000 de alto, pageCount = ceil(3000/707) = 5.
+    // A4 at 500 CSS px wide: one page is floor(500*842/595) = 707 CSS px
+    // -> at 3000 tall, pageCount = ceil(3000/707) = 5.
     const onProgress = vi.fn();
     await convertHtmlToPdf(makeElement(500, 3000), 'A4', onProgress);
 
     expect(addImageMock).toHaveBeenCalledTimes(5);
-    expect(addPageMock).toHaveBeenCalledTimes(4); // una menos que las páginas: no hay addPage antes de la primera
+    expect(addPageMock).toHaveBeenCalledTimes(4); // one less than the page count: no addPage before the first one
     expect(onProgress).toHaveBeenNthCalledWith(1, 1, 5);
     expect(onProgress).toHaveBeenNthCalledWith(5, 5, 5);
 
-    // cada página usa el ancho completo de la página (contenido nunca se corta a lo ancho)
+    // every page uses the full page width (content is never cut horizontally)
     // addImage(dataUrl, 'PNG', x, y, width, height)
     for (const call of addImageMock.mock.calls) {
-      expect(call[4]).toBe(595); // width pasado a addImage
+      expect(call[4]).toBe(595); // width passed to addImage
     }
   });
 
   it('la última franja puede ser más baja que las demás (no se estira ni deja una página en blanco de más)', async () => {
-    // la última página mide 3000 - 4*707 = 172px CSS
+    // the last page is 3000 - 4*707 = 172 CSS px
     await convertHtmlToPdf(makeElement(500, 3000), 'A4');
 
     const lastCallHeight = addImageMock.mock.calls[addImageMock.mock.calls.length - 1][5];
     const firstCallHeight = addImageMock.mock.calls[0][5];
     expect(lastCallHeight).toBeLessThan(firstCallHeight);
-    // página llena (el alto en px CSS se redondea hacia abajo: pierde < 1px)
+    // full page (CSS px height is floored: loses < 1px)
     expect(firstCallHeight).toBeGreaterThan(841);
     expect(firstCallHeight).toBeLessThanOrEqual(842);
   });
@@ -160,11 +160,11 @@ describe('Bloque 2: convertHtmlToPdf — paginación real (A4/Letter)', () => {
   });
 });
 
-// Reproducción del bug "PDF con todas las páginas en blanco": un documento de ~52
-// páginas A4 en la vista previa (732px CSS de ancho, como se midió en Chrome) se
-// capturaba ENTERO con scale 2 -> canvas de 1464 x ~105.000 px. Chrome (máx. 65.535
-// px por lado) y Firefox (32.767) no lanzan error con un canvas así: queda vacío,
-// y todas las franjas recortadas de él salen en blanco.
+// Repro for the "PDF with every page blank" bug: a ~52-page A4 document in the
+// preview (732 CSS px wide, as measured in Chrome) used to be captured WHOLE at
+// scale 2 -> a 1464 x ~105,000 px canvas. Chrome (max 65,535 px per side) and
+// Firefox (32,767) don't throw on such a canvas: it just stays empty, and every
+// strip sliced from it comes out blank.
 describe('convertHtmlToPdf — documentos largos no exceden los límites de canvas', () => {
   beforeEach(resetMocks);
 
@@ -173,7 +173,7 @@ describe('convertHtmlToPdf — documentos largos no exceden los límites de canv
   const HEIGHT_52_PAGES = A4_PAGE_CSS * 52 - 200;
 
   it('la captura única anterior (scale 2) superaba el límite: este es el caso a cubrir', () => {
-    expect(HEIGHT_52_PAGES * 2).toBeGreaterThan(65_535); // límite real por lado en Chrome
+    expect(HEIGHT_52_PAGES * 2).toBeGreaterThan(65_535); // Chrome's actual per-side limit
   });
 
   it('planCapture: mantiene scale 2 y agrupa páginas en tramos que entran en los límites', () => {
@@ -213,7 +213,7 @@ describe('convertHtmlToPdf — documentos largos no exceden los límites de canv
       expect(w * h).toBeLessThanOrEqual(MAX_CANVAS_AREA);
     }
 
-    // los tramos cubren el documento entero, sin huecos ni solapes
+    // the chunks cover the whole document, with no gaps or overlaps
     let expectedY = 0;
     for (const o of opts) {
       expect(o.y).toBe(expectedY);
@@ -222,7 +222,7 @@ describe('convertHtmlToPdf — documentos largos no exceden los límites de canv
     expect(expectedY).toBe(HEIGHT_52_PAGES);
 
     expect(addImageMock).toHaveBeenCalledTimes(52);
-    // addImage(data, format, x, y, w, h, alias, compression): sin compresión, 52 páginas pesarían ~470 MB
+    // addImage(data, format, x, y, w, h, alias, compression): uncompressed, 52 pages would weigh ~470 MB
     for (const call of addImageMock.mock.calls) expect(call[7]).toBe('FAST');
     expect(addPageMock).toHaveBeenCalledTimes(51);
     expect(onProgress).toHaveBeenLastCalledWith(52, 52);
@@ -230,16 +230,16 @@ describe('convertHtmlToPdf — documentos largos no exceden los límites de canv
 
 });
 
-// Modo "auto" con documentos largos. Dos bugs a cubrir:
-//  - un único canvas del alto total excede el límite y sale en blanco (o, si se
-//    bajaba el scale para evitarlo, el texto quedaba ilegible);
-//  - una página de más de 14.400 unidades se recorta en silencio (jsPDF): el modo
-//    "auto" anterior perdía así el último ~34% del documento de 41 páginas.
+// "auto" mode with long documents. Two bugs covered:
+//  - a single full-height canvas exceeds the limit and comes out blank (or, when
+//    the scale was lowered to avoid that, the text became unreadable);
+//  - a page over 14,400 units is silently clipped by jsPDF: the previous "auto"
+//    mode lost the last ~34% of the 41-page document that way.
 describe('convertHtmlToPdf "auto" — documentos largos: scale 2, sin canvas gigante y sin recortes', () => {
   beforeEach(resetMocks);
 
   const WIDTH = 732;
-  const HEIGHT_41_PAGES = 41_898; // el documento de prueba medido en Chrome
+  const HEIGHT_41_PAGES = 41_898; // the test document as measured in Chrome
 
   it('planAutoCapture: scale 2, tramos dentro de los límites y página dentro del máximo de un PDF', () => {
     const plan = planAutoCapture(WIDTH, HEIGHT_41_PAGES);
@@ -249,7 +249,7 @@ describe('convertHtmlToPdf "auto" — documentos largos: scale 2, sin canvas gig
     const chunkH = plan.chunkHeightCss * plan.scale;
     expect(chunkH).toBeLessThanOrEqual(MAX_CANVAS_SIDE);
     expect(chunkW * chunkH).toBeLessThanOrEqual(MAX_CANVAS_AREA);
-    // la página se achica en vez de recortarse, respetando la proporción del contenido
+    // the page shrinks instead of being clipped, keeping the content's aspect ratio
     expect(plan.pageHeightPt).toBeCloseTo(MAX_PDF_PAGE_PT, 6);
     expect(plan.pageWidthPt / plan.pageHeightPt).toBeCloseTo(WIDTH / HEIGHT_41_PAGES, 9);
   });
@@ -302,10 +302,10 @@ describe('convertHtmlToPdf "auto" — documentos largos: scale 2, sin canvas gig
   });
 });
 
-// Contenido más ancho que la vista previa (ej. una tabla de 1.400px dentro del
-// recuadro de ~734px): antes se capturaba solo el recuadro y la parte derecha
-// se perdía en los tres modos. Caso medido en Chrome: recuadro 734px con 1px de
-// borde, scrollWidth 1416 -> contenido real de 1416 + 2 = 1418px.
+// Content wider than the preview (e.g. a 1,400px table inside the ~734px box):
+// previously only the box was captured and the right side was lost in all three
+// modes. Case measured in Chrome: 734px box with a 1px border, scrollWidth 1416
+// -> actual content is 1416 + 2 = 1418px.
 describe('convertHtmlToPdf — contenido que desborda la vista previa se captura completo', () => {
   beforeEach(resetMocks);
 
@@ -317,12 +317,12 @@ describe('convertHtmlToPdf — contenido que desborda la vista previa se captura
     const opts = captureOptions();
     for (const o of opts) {
       expect(o.x).toBe(0);
-      expect(o.width).toBe(1418); // no 734: el desborde entra en la captura
+      expect(o.width).toBe(1418); // not 734: the overflow is included in the capture
     }
     const pageW = lastJsPdfCtorArgs!.format[0];
     for (const call of addImageMock.mock.calls) {
       expect(call[2]).toBe(0);
-      expect(call[4]).toBe(pageW); // el contenido más ancho ocupa justo el ancho de la página
+      expect(call[4]).toBe(pageW); // the wider content takes exactly the page width
     }
   });
 
@@ -330,7 +330,7 @@ describe('convertHtmlToPdf — contenido que desborda la vista previa se captura
     const narrow = planCapture(734, 5000, 595, 842);
     const wide = planCapture(1418, 5000, 595, 842);
     expect(wide.pageHeightCss / 1418).toBeCloseTo(narrow.pageHeightCss / 734, 2);
-    expect(wide.pageCount).toBeLessThan(narrow.pageCount); // más contenido por página, porque se achica
+    expect(wide.pageCount).toBeLessThan(narrow.pageCount); // more content per page, since it's scaled down
   });
 
   it('auto: la página toma el ancho real del contenido (1418px CSS -> 1063,5 pt)', async () => {

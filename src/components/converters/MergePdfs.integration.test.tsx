@@ -27,7 +27,7 @@ describe('Bloque 3: MergePdfs — flujo de usuario', () => {
     const downloadLink = await screen.findByRole('link', { name: /descargar pdf unido/i });
     expect(downloadLink).toBeInTheDocument();
     expect(downloadLink).toHaveAttribute('download', 'merged.pdf');
-    // no debe quedar el botón colgado en "Uniendo..."
+    // the button must not get stuck on "Uniendo..."
     expect(screen.getByRole('button', { name: /unir 2 pdfs/i })).toBeInTheDocument();
   });
 
@@ -35,12 +35,12 @@ describe('Bloque 3: MergePdfs — flujo de usuario', () => {
     const user = userEvent.setup();
     const { container } = render(<MergePdfs />);
 
-    // supera el límite de tamaño configurado en fileLimits.ts
+    // exceeds the size limit configured in fileLimits.ts
     const oversized = toFile(new Uint8Array(51 * 1024 * 1024), 'gigante.pdf', 'application/pdf');
     await user.upload(getFileInput(container), [oversized]);
 
     expect(await screen.findByText(/supera el límite/i)).toBeInTheDocument();
-    // no se agregó a la lista de archivos a unir (el nombre solo aparece dentro del mensaje de error)
+    // it wasn't added to the merge list (the name only appears inside the error message)
     expect(document.querySelectorAll('.file-list-item').length).toBe(0);
   });
 

@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-// Igual que en converters/htmlToPdf.test.ts: html2canvas/jsPDF son de terceros,
-// los mockeamos para poder probar nuestra propia orquestación (sanitización,
-// límite de longitud, estados de loading/error) sin depender de su render real.
+// Same as converters/htmlToPdf.test.ts: html2canvas/jsPDF are third-party, so
+// they're mocked to test our own orchestration (sanitization, length limit,
+// loading/error states) without depending on their actual rendering.
 const addImageMock = vi.fn();
 const addPageMock = vi.fn();
 const saveMock = vi.fn();
@@ -18,9 +18,9 @@ vi.mock('jspdf', () => ({
 let mockCanvasSize = { width: 800, height: 600 };
 
 const html2canvasMock = vi.fn(async () => {
-  // canvas real (no un objeto plano): convertHtmlToPdf ahora recorta el canvas en
-  // franjas con drawImage() para paginar, y vitest-canvas-mock necesita un
-  // HTMLCanvasElement de verdad para simular ese drawImage.
+  // A real canvas (not a plain object): convertHtmlToPdf slices it into strips
+  // with drawImage() to paginate, and vitest-canvas-mock needs an actual
+  // HTMLCanvasElement to simulate that drawImage.
   const canvas = document.createElement('canvas');
   canvas.width = mockCanvasSize.width;
   canvas.height = mockCanvasSize.height;
@@ -33,9 +33,9 @@ import HtmlToPdf from './HtmlToPdf';
 import { MAX_HTML_LENGTH } from '../../lib/fileLimits';
 import { toFile } from '../../test/fixtures';
 
-// "Subir archivo" es el modo por defecto; estos tests ejercitan el modo "Pegar
-// código" (comportamiento sin cambios), así que primero cambian de tab. El modo
-// "Subir archivo" en sí tiene su propia suite: HtmlToPdf.upload.integration.test.tsx.
+// "Subir archivo" (upload) is the default mode; these tests exercise the "Pegar
+// código" (paste) mode, so they switch tabs first. Upload mode is covered by the
+// upload tests further down in this file.
 async function switchToPasteMode(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole('tab', { name: /pegar código/i }));
 }
@@ -69,8 +69,8 @@ describe('Bloque 3: HtmlToPdf — flujo de usuario (modo "Pegar código")', () =
 
     const malicious = '<p>Factura</p><script>window.__xss=true;</script><img src="x" onerror="window.__xss=true">';
     const textarea = screen.getByPlaceholderText(/pegá tu html|pega tu html/i);
-    // pegar todo de una (fireEvent.paste sería más fiel, pero .type con HTML crudo alcanza para
-    // validar que lo que termina en el DOM real ya pasó por DOMPurify)
+    // type it all at once (fireEvent.paste would be more faithful, but .type with raw HTML is
+    // enough to check that what ends up in the real DOM went through DOMPurify)
     await user.click(textarea);
     await user.paste(malicious);
 
@@ -94,7 +94,7 @@ describe('Bloque 3: HtmlToPdf — flujo de usuario (modo "Pegar código")', () =
     await user.click(screen.getByRole('button', { name: /convertir a pdf/i }));
 
     expect(await screen.findByText(/supera el límite/i)).toBeInTheDocument();
-    // no debe haber intentado renderizar/capturar nada
+    // it must not have tried to render/capture anything
     expect(html2canvasMock).not.toHaveBeenCalled();
   });
 
@@ -121,12 +121,12 @@ describe('Bloque 3: HtmlToPdf — flujo de usuario (modo "Pegar código")', () =
 
     await user.click(screen.getByRole('tab', { name: /subir archivo/i }));
 
-    // el modo "Subir archivo" no debe mostrar ni el textarea ni la vista previa con lo que se había pegado
+    // upload mode must show neither the textarea nor a preview of the pasted content
     expect(container.querySelector('.html-preview')).not.toBeInTheDocument();
     expect(screen.queryByPlaceholderText(/pegá tu html|pega tu html/i)).not.toBeInTheDocument();
 
     await switchToPasteMode(user);
-    // y al volver a "Pegar código" el textarea arranca vacío, no con lo anterior
+    // and switching back to paste mode starts with an empty textarea, not the previous content
     expect(screen.getByPlaceholderText(/pegá tu html|pega tu html/i)).toHaveValue('');
   });
 });
@@ -169,7 +169,7 @@ describe('Bloque 3: HtmlToPdf — flujo de usuario (modo "Subir archivo", defaul
 
     const html = '<html><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252"></head>'
       + '<body><p>Estas páginas no admiten alteración: ñandú, pingüino.</p></body></html>';
-    // bytes reales en windows-1252 (1 byte por acento), no en UTF-8
+    // actual windows-1252 bytes (1 byte per accented char), not UTF-8
     const file = toFile(new Uint8Array(Buffer.from(html, 'latin1')), 'word.htm', 'text/html');
     const input = container.querySelector('input[type="file"]') as HTMLInputElement;
     await user.upload(input, file);
@@ -181,10 +181,10 @@ describe('Bloque 3: HtmlToPdf — flujo de usuario (modo "Subir archivo", defaul
   });
 
   it('rechaza la selección si no hay ningún .html/.htm (extensión inválida) sin llegar a leerlo', async () => {
-    // applyAccept: false porque queremos ejercitar NUESTRA validación por extensión
-    // (el punto del caso: un usuario puede llegar a este input con un archivo mal
-    // nombrado incluso si el atributo accept del input ya filtra en el diálogo nativo,
-    // p. ej. arrastrando y soltando, que no respeta `accept`).
+    // applyAccept: false because we want to exercise OUR extension check (the
+    // point of this case: a user can reach this input with a wrongly named file
+    // even though the input's accept attribute filters the native dialog, e.g.
+    // via drag & drop, which ignores `accept`).
     const user = userEvent.setup({ applyAccept: false });
     const { container } = render(<HtmlToPdf />);
 
@@ -192,7 +192,7 @@ describe('Bloque 3: HtmlToPdf — flujo de usuario (modo "Subir archivo", defaul
     const input = container.querySelector('input[type="file"]') as HTMLInputElement;
     await user.upload(input, file);
 
-    expect(await screen.findByText(/tenés que incluir un archivo \.html o \.htm/i)).toBeInTheDocument();
+    expect(await screen.findByText(/tienes que incluir un archivo \.html o \.htm/i)).toBeInTheDocument();
     expect(screen.queryByText('reporte.pdf')).not.toBeInTheDocument();
     expect(container.querySelector('.html-preview')).not.toBeInTheDocument();
   });
@@ -251,9 +251,9 @@ describe('Bloque 3: HtmlToPdf — flujo de usuario (modo "Subir archivo", defaul
 });
 
 describe('Bloque 3: HtmlToPdf — resolución de imágenes del HTML', () => {
-  // jsdom no ejecuta carga real de recursos (setear img.src no dispara load/error
-  // para una URL http real): reemplazamos window.Image por una versión controlable
-  // para poder probar los caminos de éxito/fallo del precargador sin red ni timeouts reales.
+  // jsdom doesn't actually load resources (setting img.src never fires load/error
+  // for a real http URL), so window.Image is replaced with a controllable version
+  // to test the preloader's success/failure paths without network or real timeouts.
   class ImmediateImage {
     onload: (() => void) | null = null;
     onerror: (() => void) | null = null;

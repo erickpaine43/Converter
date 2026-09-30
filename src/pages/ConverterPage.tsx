@@ -3,14 +3,17 @@ import { Link } from 'react-router-dom';
 import Faq from '../components/Faq';
 import SeoHead from '../components/SeoHead';
 import OtherTools from '../components/OtherTools';
+import ContentSections from '../components/ContentSections';
+import RelatedGuides from '../components/RelatedGuides';
+import type { ContentSection } from '../content/types';
 import JsonLd from '../components/JsonLd';
 import { MAX_FILE_SIZE_MB, MAX_FILES_IMAGES, MAX_FILES_MERGE } from '../lib/fileLimits';
 import { TOOL_LABELS, toolOgImage, toolPath, type ToolId } from '../lib/tools';
 import { BASE_URL, SITE_NAME, canonicalUrl } from '../lib/site';
 import { useHydrated } from '../lib/useHydrated';
 
-// Lazy: estas librerías (pdfjs-dist, html2canvas, jspdf, pdf-lib) son pesadas y
-// solo hacen falta al interactuar con la herramienta, no en la carga inicial.
+// Lazy: these libraries (pdfjs-dist, html2canvas, jspdf, pdf-lib) are heavy and
+// only needed once the user interacts with the tool, not on initial load.
 const converterMap: Record<ToolId, ComponentType> = {
   'images-to-pdf': lazy(() => import('../components/converters/imagesToPdf')),
   'html-to-pdf':   lazy(() => import('../components/converters/HtmlToPdf')),
@@ -19,10 +22,10 @@ const converterMap: Record<ToolId, ComponentType> = {
   'pdf-to-text':   lazy(() => import('../components/converters/PdfToText')),
 };
 
-// Texto visible arriba del conversor. La <meta description> es otra (metaDescriptions).
+// Visible text above the converter. The <meta description> is separate (metaDescriptions).
 const descriptions: Record<string, string> = {
   'images-to-pdf': 'Convierte tus imágenes JPG o PNG en un documento PDF. Puedes subir varias imágenes, reordenarlas y elegir el tamaño de página antes de convertir.',
-  'html-to-pdf':   'Sube un archivo .html o pega tu código y genera un PDF completo, con paginación real y sin perder contenido. Ideal para esos documentos que llegan "en formato HTML" — guardados desde un navegador — y que no se abren bien en lectores de PDF ni en apps de documentos.',
+  'html-to-pdf':   'Sube un archivo .html o pega tu código y genera un PDF completo, con paginación real y sin perder contenido. Sirve para los documentos que llegan "en formato HTML" (guardados desde un navegador) y no se abren en lectores de PDF, y para facturas o reportes que un sistema genera en HTML.',
   'pdf-to-images': 'Extrae cada página de tu PDF como imagen independiente en formato PNG o JPEG. Elige la calidad según tus necesidades.',
   'merge-pdfs':    'Combina varios archivos PDF en un único documento. Sube los archivos, ordénalos como quieras y descarga el PDF unificado.',
   'pdf-to-text':   'Extrae el contenido de texto de cualquier PDF. Puedes seleccionar un rango de páginas y descargar el texto resultante como archivo .txt.',
@@ -36,17 +39,17 @@ const faqs: Record<ToolId, { q: string; a: string }[]> = {
     { q: '¿Puedo cambiar el orden de las imágenes?', a: 'Sí, una vez que subes las imágenes aparecen miniaturas con botones para reordenarlas antes de convertir.' },
   ],
   'html-to-pdf': [
-    { q: '¿Puedo subir un archivo en vez de pegar el código?', a: 'Sí. Podés subir directamente un archivo .html o .htm desde tu dispositivo, o pegar el código a mano — las dos opciones usan el mismo proceso de conversión y la misma vista previa.' },
-    { q: '¿Qué pasa si el HTML tiene imágenes que no cargan?', a: 'El PDF se genera igual, completo en texto. Donde iba una imagen que no se pudo recuperar, vas a ver un aviso "[Imagen no disponible]" — y si la imagen tenía un link a una fuente externa, ese link queda visible como texto para que lo puedas buscar después si tenés conexión.' },
+    { q: '¿Puedo subir un archivo en vez de pegar el código?', a: 'Sí. Puedes subir directamente un archivo .html o .htm desde tu dispositivo, o pegar el código a mano — las dos opciones usan el mismo proceso de conversión y la misma vista previa.' },
+    { q: '¿Qué pasa si el HTML tiene imágenes que no cargan?', a: 'El PDF se genera igual, completo en texto. Donde iba una imagen que no se pudo recuperar, vas a ver un aviso "[Imagen no disponible]" — y si la imagen tenía un link a una fuente externa, ese link queda visible como texto para que puedas buscarlo después si tienes conexión.' },
     { q: '¿Funciona con documentos largos (muchas páginas)?', a: 'Sí. El PDF se pagina automáticamente según el contenido, así que documentos largos (varios capítulos, reportes extensos) se convierten en múltiples páginas, no en una sola imagen cortada.' },
-    { q: '¿Necesito internet después de descargar el PDF?', a: 'No. Una vez generado y descargado, el PDF es un archivo normal que podés abrir sin conexión, en cualquier lector o app de documentos.' },
-    { q: '¿Cómo subo las imágenes junto con el HTML?', a: 'Simplemente seleccioná el archivo .html y sus imágenes juntos (podés usar Ctrl+clic para elegir varios). La herramienta identifica el archivo HTML principal y conecta automáticamente cada imagen con la que corresponde en el documento, sin que tengas que hacer nada más.' },
-    { q: '¿Y si el HTML ya tiene las imágenes incluidas en el propio archivo?', a: 'Perfecto, no hace falta hacer nada extra — si las imágenes están embebidas dentro del HTML (esto pasa cuando se guarda como "página web de un solo archivo"), la herramienta las usa directamente.' },
-    { q: '¿Hay un límite de tamaño para documentos muy largos?', a: 'Con tamaño de página A4 o Carta no vas a tener el problema de antes (todo el documento achicado en una sola imagen): el PDF se pagina automáticamente en tantas páginas como haga falta. Documentos extremadamente largos podrían toparse con límites de memoria del navegador al generar la vista previa, aunque es poco común en documentos de uso normal. Si elegís que la página se ajuste exactamente al contenido, ahí sí es más probable encontrar una limitación — para documentos largos te recomendamos A4 o Carta.' },
+    { q: '¿Necesito internet después de descargar el PDF?', a: 'No. Una vez generado y descargado, el PDF es un archivo normal que puedes abrir sin conexión, en cualquier lector o app de documentos.' },
+    { q: '¿Cómo subo las imágenes junto con el HTML?', a: 'Selecciona el archivo .html y sus imágenes juntos (puedes usar Ctrl+clic para elegir varios). La herramienta identifica el archivo HTML principal y conecta automáticamente cada imagen con la que corresponde en el documento, sin que tengas que hacer nada más.' },
+    { q: '¿Y si el HTML ya tiene las imágenes incluidas en el propio archivo?', a: 'No hace falta nada extra: si las imágenes están incrustadas dentro del propio HTML (codificadas en base64, como hacen algunas extensiones que guardan la página en un único .html), la herramienta las usa directamente. Los archivos .mhtml («Página web, un solo archivo» de Chrome y Edge) no son HTML y no se pueden subir.' },
+    { q: '¿Hay un límite de tamaño para documentos muy largos?', a: 'Con tamaño de página A4 o Carta, el PDF se pagina automáticamente en tantas páginas como haga falta, así que los documentos largos se convierten completos y legibles. Documentos extremadamente largos podrían toparse con los límites de memoria del navegador al generar la vista previa, aunque es poco común con documentos de uso normal. Con el tamaño «Automático» toda la página se ajusta al contenido, y ahí sí es más probable encontrar ese límite: para documentos largos, elige A4 o Carta.' },
     { q: '¿Qué tan complejo puede ser el HTML?', a: 'Funciona bien con HTML estático y estilos CSS en línea. Hojas de estilo externas o JavaScript dentro del HTML no se procesarán correctamente.' },
     { q: '¿El PDF resultante tendrá el mismo aspecto que la vista previa?', a: 'En la mayoría de los casos sí. La conversión captura visualmente el contenido como lo renderiza el navegador.' },
     { q: '¿Mis archivos se envían a un servidor?', a: 'No. Todo se procesa en tu navegador, sin enviar ningún dato al servidor.' },
-    { q: '¿Qué tamaños de página están disponibles?', a: 'Puedes elegir entre A4, Carta o automático (ajusta el PDF al tamaño del contenido).' },
+    { q: '¿Qué tamaños de página están disponibles?', a: 'Puedes elegir entre A4, Carta o Automático (ajusta la página al tamaño del contenido).' },
   ],
   'pdf-to-images': [
     { q: '¿En qué formatos puedo exportar las imágenes?', a: 'Puedes elegir entre PNG (sin pérdida de calidad) y JPEG (menor tamaño de archivo).' },
@@ -68,8 +71,8 @@ const faqs: Record<ToolId, { q: string; a: string }[]> = {
   ],
 };
 
-// <title> (sin el sufijo " | PDF Converter" que agrega SeoHead): 50-60 caracteres
-// en total, lo controla seo.test.tsx.
+// <title> (without the " | PDF Converter" suffix added by SeoHead): 50-60
+// characters in total, enforced by seo.test.tsx.
 const titles: Record<ToolId, string> = {
   'images-to-pdf': 'Convertir Imágenes a PDF Gratis Online',
   'html-to-pdf':   'Convertir HTML a PDF Gratis Online',
@@ -78,8 +81,8 @@ const titles: Record<ToolId, string> = {
   'pdf-to-text':   'Extraer Texto de PDF Gratis Online',
 };
 
-// <meta description> (y og/twitter:description), 150-160 caracteres; lo
-// controla seo.test.tsx. Distinta del texto visible de `descriptions`.
+// <meta description> (and og/twitter:description), 150-160 characters,
+// enforced by seo.test.tsx. Separate from the visible `descriptions` text.
 const metaDescriptions: Record<ToolId, string> = {
   'merge-pdfs':    'Une varios PDFs en un solo archivo, gratis y online. Ordénalos antes de combinarlos, sin registro y sin subir nada: todo se procesa en tu propio navegador.',
   'images-to-pdf': 'Convierte imágenes JPG y PNG a PDF gratis. Ordena tus fotos, elige A4, Carta o el tamaño original y descarga el PDF. Sin registro y sin subir tus archivos.',
@@ -88,20 +91,12 @@ const metaDescriptions: Record<ToolId, string> = {
   'html-to-pdf':   'Convierte un archivo o código HTML a PDF gratis, con paginación real e imágenes incluidas. Sin registro y sin subir nada: todo ocurre en tu navegador.',
 };
 
-// Contenido explicativo debajo del conversor y antes del FAQ: cómo se usa,
-// para qué sirve y cómo funciona/límites. Se renderiza fuera del Suspense del
-// widget, así que está en el HTML pre-renderizado (visible sin JS y para Google).
-// Los datos concretos (formatos, límites, escalas) reflejan lo que hace el código
-// de cada conversor: si cambia el comportamiento, actualizar también este texto.
-interface ContentSection {
-  title: string;
-  /** Pasos numerados (<ol>). */
-  steps?: string[];
-  /** Lista sin orden (<ul>), después de los párrafos. */
-  items?: string[];
-  paragraphs?: string[];
-}
-
+// Explanatory content below the converter and above the FAQ: how to use it,
+// what it's for and how it works/its limits. Rendered outside the widget's
+// Suspense, so it's in the pre-rendered HTML (visible without JS and to Google).
+// The specifics (formats, limits, scales) mirror what each converter's code
+// does: keep this text, and the guides in src/content/guides/ that mention it,
+// in sync with any behavior change.
 const extraContent: Record<ToolId, ContentSection[]> = {
   'merge-pdfs': [
     {
@@ -221,13 +216,13 @@ const extraContent: Record<ToolId, ContentSection[]> = {
       paragraphs: [
         'Es más común de lo que parece: alguien guarda una página o un documento desde el navegador con "Guardar como página web", y el resultado es un archivo .html que dice ser un PDF pero no se comporta como uno — no se abre en lectores de PDF, y muchas apps de documentos ni siquiera lo reconocen.',
         'Esta herramienta convierte ese archivo a un PDF real, respetando el texto completo del documento. Si el HTML es largo, el PDF se pagina correctamente en vez de generar una sola imagen gigante. Y si alguna imagen del documento no se puede recuperar, el PDF lo indica claramente en el lugar donde iba la imagen.',
-        'Si tenés las imágenes del documento por separado, podés subirlas junto con el archivo .html — la herramienta las reconoce automáticamente por su nombre y las incluye en el PDF. Si no las tenés, o si la imagen no se puede recuperar, vas a ver un aviso en su lugar, nunca un ícono roto sin explicación.',
+        'Si tienes las imágenes del documento por separado, puedes subirlas junto con el archivo .html: la herramienta las reconoce automáticamente por su nombre y las incluye en el PDF. Si no las tienes, o si la imagen no se puede recuperar, verás un aviso en su lugar, nunca un ícono roto sin explicación.',
       ],
     },
   ],
 };
 
-// Texto de H1 diferenciado del <title> y del H2 interno de cada herramienta.
+// H1 text, distinct from the <title> and from each tool's inner H2.
 const h1Titles: Record<string, string> = {
   'images-to-pdf': 'Convertir Imágenes a PDF Gratis Online',
   'html-to-pdf':   'Convertir HTML a PDF Gratis Online',
@@ -236,10 +231,10 @@ const h1Titles: Record<string, string> = {
   'pdf-to-text':   'Extraer Texto de PDF Gratis Online',
 };
 
-// Cada herramienta tiene su propia ruta explícita en AppRoutes (slug en
-// español, ver lib/tools.ts); cualquier otra URL cae en el catch-all <NotFound />.
-// Schema.org de cada herramienta: la app (gratis), el FAQ visible (mismos datos
-// que <Faq>, no una copia) y la miga de pan Inicio > Herramienta.
+// Each tool has its own explicit route in AppRoutes (Spanish slug, see
+// lib/tools.ts); any other URL falls through to the <NotFound /> catch-all.
+// Schema.org per tool: the (free) app, the visible FAQ (same data as <Faq>,
+// not a copy) and the Home > Tool breadcrumb.
 function toolStructuredData(type: ToolId): Record<string, unknown> {
   const url = canonicalUrl(toolPath(type));
   return {
@@ -300,42 +295,29 @@ export default function ConverterPage({ tool: type }: { tool: ToolId }) {
         {type && descriptions[type] && (
           <p className="converter-desc">{descriptions[type]}</p>
         )}
-        {/* Reserva la altura inicial del widget (index.css) desde el HTML
-            pre-renderizado: al reemplazar al placeholder no empuja el contenido
-            de abajo (CLS). */}
+        {/* Reserves the widget's initial height (index.css) from the
+            pre-rendered HTML, so replacing the placeholder doesn't push the
+            content below (CLS). */}
         <div className={`converter-widget converter-widget--${type}`}>
           {hydrated ? (
             <Suspense fallback={loading}>
               <Component />
             </Suspense>
           ) : (
-            // Server y primer render del cliente (hidratación): solo el placeholder,
-            // sin Suspense ni lazy(). Así el HTML pre-renderizado calza exacto, y el
-            // import() del widget (pdfjs-dist, html2canvas, jspdf: librerías de
-            // navegador que no deben evaluarse en Node) arranca recién tras hidratar.
+            // Server render and the client's first render (hydration): only the
+            // placeholder, no Suspense or lazy(). That way the pre-rendered HTML
+            // matches exactly, and the widget's import() (pdfjs-dist, html2canvas,
+            // jspdf: browser-only libraries that must not be evaluated in Node)
+            // only starts after hydration.
             loading
           )}
         </div>
       </div>
       <div className="info-section converter-extra-content">
-        {extraContent[type].map(section => (
-          <section key={section.title}>
-            <h2>{section.title}</h2>
-            {section.steps && (
-              <ol className="content-steps">
-                {section.steps.map((step, i) => <li key={i}>{step}</li>)}
-              </ol>
-            )}
-            {section.paragraphs?.map((p, i) => <p key={i}>{p}</p>)}
-            {section.items && (
-              <ul>
-                {section.items.map((item, i) => <li key={i}>{item}</li>)}
-              </ul>
-            )}
-          </section>
-        ))}
+        <ContentSections sections={extraContent[type]} />
       </div>
       {faqs[type] && <Faq items={faqs[type]} />}
+      <RelatedGuides tool={type} />
       <OtherTools current={type} />
     </main>
   );

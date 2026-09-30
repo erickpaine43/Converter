@@ -5,20 +5,22 @@ interface Props {
   title: string;
   description: string;
   path?: string;
-  /** Imagen para compartir (ruta en public/, 1200x630). Por defecto, la genérica del sitio. */
+  /** Sharing image (path in public/, 1200x630). Defaults to the site-wide one. */
   image?: string;
-  /** Páginas que no deben indexarse (ej. la 404): agrega robots noindex y omite canonical/og:url. */
+  /** Pages that must not be indexed (e.g. the 404): adds robots noindex and omits canonical/og:url. */
   noindex?: boolean;
+  /** og:type: 'article' for guides, 'website' for everything else. */
+  type?: 'website' | 'article';
 }
 
-// Tags nativos de metadata de React 19: se "hoistean" al <head> automáticamente
-// sin importar dónde se rendericen en el árbol — funciona igual en el cliente
-// y en renderToString (SSR/pre-render), a diferencia de react-helmet-async.
-export default function SeoHead({ title, description, path = '', image = SITE_OG_IMAGE, noindex = false }: Props) {
+// React 19 native metadata tags: they're hoisted into <head> automatically no
+// matter where they render in the tree, and work the same on the client and in
+// renderToString (SSR/pre-render), unlike react-helmet-async.
+export default function SeoHead({ title, description, path = '', image = SITE_OG_IMAGE, noindex = false, type = 'website' }: Props) {
   const fullTitle = `${title} | ${SITE_NAME}`;
   const url = canonicalUrl(path);
   const imageUrl = `${BASE_URL}${image}`;
-  // Las imágenes de public/og/ muestran el nombre del sitio y de la herramienta.
+  // The images in public/og/ show the site and tool names.
   const imageAlt = `${title} — ${SITE_NAME}`;
 
   return (
@@ -32,7 +34,7 @@ export default function SeoHead({ title, description, path = '', image = SITE_OG
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
       {!noindex && <meta property="og:url" content={url} />}
-      <meta property="og:type" content="website" />
+      <meta property="og:type" content={type} />
       <meta property="og:image" content={imageUrl} />
       <meta property="og:image:width" content="1200" />
       <meta property="og:image:height" content="630" />

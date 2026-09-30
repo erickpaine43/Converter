@@ -43,9 +43,9 @@ describe('Bloque 1: validateFiles', () => {
   it('cuenta los archivos ya existentes al validar el límite de cantidad', () => {
     const existing = 5;
     const newFiles = Array.from({ length: MAX_FILES_MERGE - existing }, (_, i) => fileOfSize(10, `f${i}.pdf`));
-    // exactamente en el límite total
+    // exactly at the total limit
     expect(validateFiles(newFiles, { maxCount: MAX_FILES_MERGE, existingCount: existing })).toBeNull();
-    // uno más rompe el límite
+    // one more goes over the limit
     newFiles.push(fileOfSize(10, 'extra.pdf'));
     expect(validateFiles(newFiles, { maxCount: MAX_FILES_MERGE, existingCount: existing })).not.toBeNull();
   });

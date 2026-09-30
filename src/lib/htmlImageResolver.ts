@@ -51,15 +51,15 @@ function buildPlaceholder(originalSrc: string): HTMLElement {
 }
 
 /**
- * Resuelve cada <img> de `container` (mutando el DOM in place), en este orden
- * de prioridad:
- *   1. src data: (embebida en base64) -> se deja tal cual.
- *   2. nombre de archivo del src coincide con alguno de `auxFiles` -> blob URL.
- *   3. si no, se precarga el src tal cual (con timeout); si falla, se reemplaza
- *      el <img> por un placeholder de texto ("[Imagen no disponible]", con la
- *      URL visible debajo si era absoluta).
- * Se usa tanto para actualizar la vista previa en vivo como, antes de
- * convertir, para dejar el DOM que le llega a html2canvas ya resuelto.
+ * Resolves every <img> in `container` (mutating the DOM in place), in this
+ * order of precedence:
+ *   1. data: src (embedded base64) -> left as is.
+ *   2. src file name matches one of `auxFiles` -> blob URL.
+ *   3. otherwise the src is preloaded as is (with a timeout); if that fails,
+ *      the <img> is replaced with a text placeholder ("[Imagen no disponible]",
+ *      with the URL shown below it if it was absolute).
+ * Used both to update the live preview and, before converting, to hand
+ * html2canvas an already-resolved DOM.
  */
 export async function resolveHtmlImages(
   container: HTMLElement,
@@ -74,21 +74,21 @@ export async function resolveHtmlImages(
     const src = img.getAttribute('src') ?? '';
     if (!src) return;
 
-    if (/^data:/i.test(src)) return; // 1. embebida, sin cambios
+    if (/^data:/i.test(src)) return; // 1. embedded, unchanged
 
     const fileName = basename(src);
     const match = fileName
       ? auxFiles.find(f => f.name.toLowerCase() === fileName.toLowerCase())
       : undefined;
 
-    if (match) { // 2. resuelto con un archivo adjunto
+    if (match) { // 2. resolved from an attached file
       const blobUrl = URL.createObjectURL(match);
       createdBlobUrls.push(blobUrl);
       img.src = blobUrl;
       return;
     }
 
-    const ok = await preloadImage(src, timeoutMs); // 3. probar tal cual
+    const ok = await preloadImage(src, timeoutMs); // 3. try it as is
     if (!ok) {
       unavailableCount++;
       img.replaceWith(buildPlaceholder(src));

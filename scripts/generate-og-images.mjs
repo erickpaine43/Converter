@@ -1,12 +1,12 @@
-// Genera las imágenes para compartir en redes (Open Graph / Twitter, 1200x630)
-// y el logo cuadrado de los datos estructurados, renderizando HTML en Chrome
-// headless. Los PNG resultantes se versionan en public/: NO corre en el build.
+// Generates the social sharing images (Open Graph / Twitter, 1200x630) and the
+// square logo for structured data by rendering HTML in headless Chrome. The
+// resulting PNGs are committed to public/; this does NOT run during the build.
 //
-// Correrlo solo si cambian los nombres de las herramientas o el diseño:
+// Only needs to run when tool names or the design change:
 //   npm i --no-save puppeteer-core
 //   node scripts/generate-og-images.mjs
-// Usa el Chrome instalado (CHROME_PATH para otra ruta). Necesita Node >= 22.18
-// para importar src/lib/tools.ts directamente (type stripping nativo).
+// Uses the installed Chrome (set CHROME_PATH for a different path). Requires
+// Node >= 22.18 to import src/lib/tools.ts directly (native type stripping).
 import puppeteer from 'puppeteer-core';
 import { mkdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -17,7 +17,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const publicDir = path.join(root, 'public');
 const CHROME_PATH = process.env.CHROME_PATH ?? 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 
-// Mismos trazos que src/components/icons/index.tsx (viewBox 0 0 24 24).
+// Same paths as src/components/icons/index.tsx (viewBox 0 0 24 24).
 const ICONS = {
   'merge-pdfs': '<path d="M14.5 5.5 8 12a3 3 0 0 0 4.24 4.24l6-6a5 5 0 0 0-7.07-7.07L4.5 9.83" />',
   'images-to-pdf': '<rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="8.5" cy="9.5" r="1.5" /><path d="M21 16l-5.5-5.5L11 15l-3-3-5 5" />',
@@ -75,15 +75,15 @@ try {
     await page.evaluate(() => document.fonts.ready);
     const fontsOk = await page.evaluate(() =>
       document.fonts.check("700 76px 'Source Serif 4'") && document.fonts.check("400 30px 'IBM Plex Sans'"));
-    if (!fontsOk) throw new Error(`No cargaron las fuentes de Google Fonts para ${out} (¿sin conexión?)`);
+    if (!fontsOk) throw new Error(`Google Fonts didn't load for ${out} (offline?)`);
     const file = path.join(publicDir, out);
     await mkdir(path.dirname(file), { recursive: true });
     await page.screenshot({ path: file, type: 'png' });
     console.log(`og image -> ${path.relative(root, file)}`);
   }
 
-  // Logo cuadrado para Organization.logo (Google pide >= 112x112): el mismo
-  // favicon.svg del sitio, rasterizado.
+  // Square logo for Organization.logo (Google requires >= 112x112): the site's
+  // favicon.svg, rasterized.
   const favicon = await readFile(path.join(publicDir, 'favicon.svg'), 'utf-8');
   await page.setViewport({ width: 512, height: 512 });
   await page.setContent(`<html><body style="margin:0">${favicon.replace('<svg ', '<svg width="512" height="512" ')}</body></html>`);

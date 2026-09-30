@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
-import { LEGACY_TOOL_PATHS } from './lib/tools';
+import { LEGACY_PAGE_PATHS, LEGACY_TOOL_PATHS } from './lib/tools';
 
-// netlify.toml es un archivo estático: este test lo mantiene sincronizado con
-// src/lib/tools.ts (la lista de rutas real de la app).
+// netlify.toml is a static file: this test keeps it in sync with src/lib/tools.ts
+// (the app's actual route list).
 const root = path.resolve(__dirname, '..');
 
 interface Redirect { from: string; to: string; status: number; force: boolean }
@@ -34,7 +34,7 @@ describe('netlify.toml', () => {
     expect(catchAllIndex).toBe(redirects.length - 1);
   });
 
-  for (const [oldPath, newPath] of Object.entries(LEGACY_TOOL_PATHS)) {
+  for (const [oldPath, newPath] of Object.entries({ ...LEGACY_TOOL_PATHS, ...LEGACY_PAGE_PATHS })) {
     it(`redirige ${oldPath} (con y sin barra) con 301 a ${newPath}`, () => {
       for (const from of [oldPath, `${oldPath}/`]) {
         const index = redirects.findIndex(r => r.from === from);

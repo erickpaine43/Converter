@@ -34,7 +34,7 @@ describe('Bloque 3: PdfToText — flujo de usuario', () => {
     await user.upload(getFileInput(container), badFile);
 
     expect(await screen.findByText('.', { exact: false, selector: '.msg-error' })).toBeInTheDocument();
-    // no debería habilitarse "Extraer Texto" con un archivo que ya falló al leerse
+    // "Extraer Texto" shouldn't be enabled for a file that already failed to load
     expect(screen.getByRole('button', { name: /extraer texto/i })).toBeDisabled();
   });
 

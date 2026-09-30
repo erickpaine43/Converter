@@ -1,7 +1,7 @@
 export const MAX_FILE_SIZE_MB = 50;
 export const MAX_FILES_MERGE = 30;
 export const MAX_FILES_IMAGES = 50;
-export const MAX_HTML_LENGTH = 500_000; // ~500 KB de texto pegado
+export const MAX_HTML_LENGTH = 500_000; // ~500 KB of pasted text
 
 interface ValidateFilesOptions {
   maxSizeMB?: number;

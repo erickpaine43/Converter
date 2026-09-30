@@ -6,7 +6,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
 ).toString();
 
 export type ImageFormat = 'png' | 'jpeg';
-export type ImageQuality = 1 | 2 | 3; // escala: baja, media, alta
+export type ImageQuality = 1 | 2 | 3; // scale: low, medium, high
 export type PageProgress = (done: number, total: number) => void;
 
 export async function convertPdfToImages(
