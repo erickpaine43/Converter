@@ -23,6 +23,12 @@
   to = "https://pdfconverterforfree.com/:splat"
   status = 301
   force = true
+# Old duplicate Netlify project that also builds from this repo.
+[[redirects]]
+  from = "https://convertidordepdfs.netlify.app/*"
+  to = "https://pdfconverterforfree.com/:splat"
+  status = 301
+  force = true
 
 # Old tool URLs (English, under /converter/) -> Spanish slugs. 301 to keep
 # external links and existing indexing. They go BEFORE the 404 catch-all
