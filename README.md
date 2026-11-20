@@ -4,7 +4,7 @@ Free PDF tools that run entirely in the browser (files are never uploaded to a
 server): merge PDFs, images to PDF, PDF to images, PDF to text and HTML to PDF,
 plus a section of how-to guides. The site is in Spanish.
 
-Live at https://pdf-converter-freee.netlify.app
+Live at https://pdfconverterforfree.com
 
 Built with React 19, TypeScript and Vite, statically pre-rendered per route and
 deployed on Netlify.
