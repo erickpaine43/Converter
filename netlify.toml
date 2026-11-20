@@ -6,6 +6,23 @@
   for = "/*"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
+    # Basic security headers. No Content-Security-Policy on purpose: Google
+    # Analytics and AdSense load scripts and iframes from many Google domains,
+    # and a too-strict CSP would silently break ads.
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "SAMEORIGIN"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# The Netlify subdomain serves the same site as the custom domain: send it
+# there with a 301 so Google only indexes pdfconverterforfree.com (canonical,
+# sitemap and robots.txt all point to it, see src/lib/site.ts). Must be the
+# first rule so it wins over everything below.
+[[redirects]]
+  from = "https://pdf-converter-freee.netlify.app/*"
+  to = "https://pdfconverterforfree.com/:splat"
+  status = 301
+  force = true
 
 # Old tool URLs (English, under /converter/) -> Spanish slugs. 301 to keep
 # external links and existing indexing. They go BEFORE the 404 catch-all

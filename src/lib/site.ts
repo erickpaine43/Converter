@@ -1,4 +1,4 @@
-export const BASE_URL = 'https://pdf-converter-freee.netlify.app';
+export const BASE_URL = 'https://pdfconverterforfree.com';
 export const SITE_NAME = 'PDF Converter';
 
 /** Square, for Organization.logo in the structured data (see scripts/generate-og-images.mjs). */
